@@ -27,15 +27,15 @@ Install a built zip without the registry from **Settings → Extensions → Inst
 
 | Plugin | Id | Version |
 | --- | --- | --- |
-| [AI Provider](plugins/ai-provider/README.md) | `com.binarygeek119.ai-provider` | 0.2.1 |
+| [AI Provider](plugins/ai-provider/README.md) | `com.binarygeek119.ai-provider` | 0.2.2 |
 | [Text to Audio](plugins/text-to-audio/README.md) | `com.yourcove.text-to-audio` | 0.2.0 |
-| [Media Covers](plugins/media-covers/README.md) | `com.binarygeek119.media-covers` | 0.1.5 |
+| [Media Covers](plugins/media-covers/README.md) | `com.binarygeek119.media-covers` | 0.1.6 |
 
 **AI Provider** is the shared OpenAI-compatible backend (Venice by default). Other plugins call it for chat, speech, and images.
 
 **Text to Audio** converts `.txt` / `.md` files through that provider and writes audio into a folder you set. Install AI Provider first.
 
-**Media Covers** fills in missing audio and text covers as 16:9 movie posters. Install AI Provider 0.2.1+ first.
+**Media Covers** fills in missing audio and text covers as 16:9 movie posters. Install AI Provider 0.2.2+ first.
 
 ## GitHub Actions
 

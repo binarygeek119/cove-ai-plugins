@@ -25,6 +25,11 @@ internal static partial class CoverPromptBuilder
     }
 
     [GeneratedRegex(
+        @"\b(?:kinky|kinks?|fetishes?|xxx|nsfw|porn(?:o|ographic)?|explicit|erotic|sex(?:ual|y)?|bdsm|bondage|nude|naked)\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex TriggerTitleWords();
+
+    [GeneratedRegex(
         @"\b(?:gilfs?|grann(?:y|ies)|grandmas?|grandmothers?|nanas?|grandpas?|grandfathers?|elderly|geriatric|old\s+(?:man|men|woman|women|lady|ladies|guy|guys)|senior\s+citizens?|grey-?haired|gray-?haired|white-?haired|wrinkl(?:e|ed|es|y)|cougars?|silver\s+fox(?:es)?|[6-9]0(?:s|\s*(?:year|yr)s?\s*old))\b",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex OlderAdultCue();
@@ -54,15 +59,17 @@ internal static partial class CoverPromptBuilder
 
         if (tags.Count > 2)
         {
-            var half = tags.Take(Math.Max(1, tags.Count / 2)).ToList();
-            attempts.Add(Compose(title, null, null, half, people, "half-tags", olderNeeded, PosterStyle.Adult));
+            var split = Math.Max(1, tags.Count / 2);
+            attempts.Add(Compose(title, null, null, tags.Take(split).ToList(), people, "first-half-tags", olderNeeded, PosterStyle.Adult));
+            attempts.Add(Compose(title, null, null, tags.Skip(split).ToList(), people, "second-half-tags", olderNeeded, PosterStyle.Adult));
         }
 
         if (tags.Count > 0)
             attempts.Add(Compose(title, null, null, [], people, "without-tags", olderNeeded, PosterStyle.Adult));
 
-        attempts.Add(Compose(title, null, null, [], [], "title-soft", olderNeeded, PosterStyle.Soft));
-        attempts.Add(Compose(title, null, null, [], [], "plain-title", olderNeeded, PosterStyle.Plain));
+        var safeTitle = SoftenTitle(title);
+        attempts.Add(Compose(safeTitle, null, null, [], [], "title-soft", olderNeeded, PosterStyle.Soft));
+        attempts.Add(Compose(safeTitle, null, null, [], [], "plain-title", olderNeeded, PosterStyle.Plain));
         return attempts;
     }
 
@@ -156,6 +163,13 @@ internal static partial class CoverPromptBuilder
         }
 
         return new CoverPrompt(string.Join(" ", sections), string.Join(", ", negative), layer);
+    }
+
+    private static string SoftenTitle(string title)
+    {
+        var softened = TriggerTitleWords().Replace(title, " ");
+        softened = string.Join(" ", softened.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        return string.IsNullOrWhiteSpace(softened) ? title : softened;
     }
 
     private static bool NeedsOlderAdults(

@@ -156,7 +156,7 @@ internal sealed class OpenAiCompatibleAiProvider(HttpClient http, CoveConfigurat
         if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
         {
             var binary = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode && !IsVeniceContentViolation(response))
                 return new AiImageResult(binary, mediaType);
             throw ImageFailure(response, Encoding.UTF8.GetString(binary));
         }
@@ -165,10 +165,16 @@ internal sealed class OpenAiCompatibleAiProvider(HttpClient http, CoveConfigurat
         if (!response.IsSuccessStatusCode)
             throw ImageFailure(response, body);
 
+        if (IsVeniceContentViolation(response))
+        {
+            throw new AiImageRejectedException(
+                "The image API flagged a content violation. Retry with less prompt content.");
+        }
+
         if (TryParseImageResponse(body, out var image))
             return image;
 
-        if (IsVeniceContentViolation(response) || LooksLikeContentRejection((int)response.StatusCode, body))
+        if (LooksLikeContentRejection((int)response.StatusCode, body))
         {
             throw new AiImageRejectedException(
                 "The image API refused this prompt and returned no image.");

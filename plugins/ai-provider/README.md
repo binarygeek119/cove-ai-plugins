@@ -16,7 +16,7 @@ In Cove: **Settings → AI Provider**.
 | Speech model / voice / format | Defaults for `IAiProvider.SpeechAsync`. |
 | Image model | Default for `IAiProvider.ImageAsync`. Venice default is `qwen-image-2`. |
 
-On Venice, images go to `/image/generate` with `aspect_ratio` (16:9) and `safe_mode` off so adult library covers are not blurred. If Venice still returns image bytes, those are used even when a content-violation header is set. On OpenAI-compatible hosts, images go to `/images/generations`.
+On Venice, images go to `/image/generate` with `aspect_ratio` (16:9) and `safe_mode` off so adult library covers are not blurred. If Venice sets `x-venice-is-content-violation`, the image is discarded and callers can retry with less prompt content. On OpenAI-compatible hosts, images go to `/images/generations`.
 
 Network allowlist is `api.venice.ai` and `api.openai.com`. A custom host must be added to `extension.json` permissions.
 
