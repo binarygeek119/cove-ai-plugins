@@ -8,4 +8,7 @@
   <Folder Name="/plugins/text-to-audio/">
     <Project Path="plugins/text-to-audio/src/TextToAudio/TextToAudio.csproj" />
   </Folder>
+  <Folder Name="/plugins/media-covers/">
+    <Project Path="plugins/media-covers/src/MediaCovers/MediaCovers.csproj" />
+  </Folder>
 </Solution>

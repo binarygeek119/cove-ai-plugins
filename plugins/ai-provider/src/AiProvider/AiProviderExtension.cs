@@ -18,8 +18,8 @@ public sealed class AiProviderExtension : CoveExtensionBase
                 "AI Provider",
                 order: 40,
                 icon: "sparkles",
-                description: "Shared OpenAI-compatible API (Venice by default) used by other Cove AI plugins.",
-                searchKeywords: ["ai", "venice", "openai", "provider", "api", "key"])
+                description: "Shared OpenAI-compatible API (Venice by default) used by other Cove AI plugins for chat, speech, and images.",
+                searchKeywords: ["ai", "venice", "openai", "provider", "api", "key", "image"])
             .AddSettingsSection(SettingsTabKey, "Provider", "SettingsPanel")
             .Build();
 

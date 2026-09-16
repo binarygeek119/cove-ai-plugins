@@ -22,9 +22,13 @@ public interface IAiProvider
 
     string DefaultChatModel { get; }
 
+    string DefaultImageModel { get; }
+
     Task<byte[]> SpeechAsync(AiSpeechRequest request, CancellationToken cancellationToken = default);
 
     Task<string> ChatAsync(AiChatRequest request, CancellationToken cancellationToken = default);
+
+    Task<AiImageResult> ImageAsync(AiImageRequest request, CancellationToken cancellationToken = default);
 }
 
 public sealed record AiSpeechRequest(
@@ -38,3 +42,12 @@ public sealed record AiChatRequest(
     string? Model = null,
     string? SystemPrompt = null,
     double? Temperature = null);
+
+public sealed record AiImageRequest(
+    string Prompt,
+    string? NegativePrompt = null,
+    string? Model = null,
+    string AspectRatio = "16:9",
+    bool SafeMode = false);
+
+public sealed record AiImageResult(byte[] Bytes, string ContentType);

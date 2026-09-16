@@ -20,6 +20,16 @@
       "manifest": "plugins/text-to-audio/src/TextToAudio/extension.json",
       "tagPrefix": "text-to-audio/",
       "categories": ["ai", "tools", "import", "automation"]
+    },
+    {
+      "name": "MediaCovers",
+      "id": "com.binarygeek119.media-covers",
+      "slug": "media-covers",
+      "path": "plugins/media-covers/src/MediaCovers",
+      "project": "plugins/media-covers/src/MediaCovers/MediaCovers.csproj",
+      "manifest": "plugins/media-covers/src/MediaCovers/extension.json",
+      "tagPrefix": "media-covers/",
+      "categories": ["ai", "tools", "automation"]
     }
   ]
 }

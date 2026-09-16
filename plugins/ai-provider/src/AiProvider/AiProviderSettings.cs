@@ -8,13 +8,15 @@ internal sealed record AiProviderSettings(
     string ChatModel,
     string SpeechModel,
     string SpeechVoice,
-    string SpeechFormat)
+    string SpeechFormat,
+    string ImageModel)
 {
     public const string ExtensionId = "com.binarygeek119.ai-provider";
     public const string DefaultBaseUrl = "https://api.venice.ai/api/v1";
     public const string DefaultSpeechModel = "tts-kokoro";
     public const string DefaultSpeechVoice = "af_sky";
     public const string DefaultSpeechFormat = "mp3";
+    public const string DefaultImageModel = "qwen-image-2";
 
     public static AiProviderSettings FromConfig(IReadOnlyDictionary<string, object?>? values)
     {
@@ -31,12 +33,20 @@ internal sealed record AiProviderSettings(
             GetString(values, "chatModel"),
             FirstNonEmpty(GetString(values, "speechModel"), DefaultSpeechModel),
             FirstNonEmpty(GetString(values, "speechVoice"), DefaultSpeechVoice),
-            FirstNonEmpty(GetString(values, "speechFormat"), DefaultSpeechFormat).TrimStart('.').ToLowerInvariant());
+            FirstNonEmpty(GetString(values, "speechFormat"), DefaultSpeechFormat).TrimStart('.').ToLowerInvariant(),
+            FirstNonEmpty(GetString(values, "imageModel"), DefaultImageModel));
     }
 
     public string SpeechUrl => ResolveEndpoint(BaseUrl, "audio/speech");
 
     public string ChatUrl => ResolveEndpoint(BaseUrl, "chat/completions");
+
+    public bool IsVeniceHost
+        => Uri.TryCreate(BaseUrl.TrimEnd('/') + "/", UriKind.Absolute, out var uri)
+            && uri.Host.Equals("api.venice.ai", StringComparison.OrdinalIgnoreCase);
+
+    public string ImageUrl
+        => ResolveEndpoint(BaseUrl, IsVeniceHost ? "image/generate" : "images/generations");
 
     public bool RequiresKey
     {

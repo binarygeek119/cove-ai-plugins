@@ -1,6 +1,6 @@
 # AI Provider
 
-Shared OpenAI-compatible AI backend for this plugin pack. Other plugins (starting with Text to Audio) call it for **chat** and **speech** so each plugin does not store its own API key and URL.
+Shared OpenAI-compatible AI backend for this plugin pack. Other plugins call it for **chat**, **speech**, and **images** so each plugin does not store its own API key and URL.
 
 Default backend is [Venice AI](https://docs.venice.ai/): `https://api.venice.ai/api/v1`.
 
@@ -14,6 +14,9 @@ In Cove: **Settings → AI Provider**.
 | API URL | OpenAI-compatible `/v1` root. |
 | Chat model | Default model for `IAiProvider.ChatAsync`. |
 | Speech model / voice / format | Defaults for `IAiProvider.SpeechAsync`. |
+| Image model | Default for `IAiProvider.ImageAsync`. Venice default is `qwen-image-2`. |
+
+On Venice, images go to `/image/generate` with `aspect_ratio` (16:9) and `safe_mode` off so adult library covers are not blurred. On OpenAI-compatible hosts, images go to `/images/generations`.
 
 Network allowlist is `api.venice.ai` and `api.openai.com`. A custom host must be added to `extension.json` permissions.
 
@@ -30,6 +33,7 @@ var provider = AiProviderLookup.Require(
 
 var audio = await provider.SpeechAsync(new AiSpeechRequest(text, model, voice, format), ct);
 var reply = await provider.ChatAsync(new AiChatRequest(prompt, model), ct);
+var image = await provider.ImageAsync(new AiImageRequest(prompt, aspectRatio: "16:9"), ct);
 ```
 
 The AI Provider plugin publishes `IAiProvider` during `InitializeAsync`.
