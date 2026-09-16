@@ -54,6 +54,7 @@ if (files) {
     file === "Directory.Build.props"
     || file === "global.json"
     || file === "plugins/catalog.json"
+    || file.startsWith("shared/")
     || file.startsWith("scripts/")
     || file.startsWith(".github/workflows/"));
   if (!shared) {

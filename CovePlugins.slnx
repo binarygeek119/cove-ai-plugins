@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/shared/">
+    <Project Path="shared/Cove.Ai.Abstractions/Cove.Ai.Abstractions.csproj" />
+  </Folder>
+  <Folder Name="/plugins/ai-provider/">
+    <Project Path="plugins/ai-provider/src/AiProvider/AiProvider.csproj" />
+  </Folder>
   <Folder Name="/plugins/text-to-audio/">
     <Project Path="plugins/text-to-audio/src/TextToAudio/TextToAudio.csproj" />
   </Folder>

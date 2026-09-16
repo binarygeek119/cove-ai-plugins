@@ -17,17 +17,13 @@ public sealed class TextToAudioExtension : JobExtensionBase
                 "Text to Audio",
                 order: 80,
                 icon: "music",
-                description: "Convert text files to speech with Venice AI and write audio into a folder you choose.",
+                description: "Convert text files to speech through the shared AI Provider plugin and write audio into a folder you choose.",
                 searchKeywords: ["tts", "openai", "speech", "audio", "text"])
             .AddSettingsSection(SettingsTabKey, "Speech conversion", "SettingsPanel")
             .Build();
 
     public override void ConfigureServices(IServiceCollection services, ExtensionContext context)
     {
-        services.AddHttpClient<OpenAiSpeechClient>(client =>
-        {
-            client.Timeout = TimeSpan.FromMinutes(10);
-        });
         services.AddScoped<TextToAudioService>();
     }
 
@@ -43,7 +39,7 @@ public sealed class TextToAudioExtension : JobExtensionBase
             "convert-text-files",
             "Convert text files to audio",
             ConvertTextFilesAsync,
-            "Reads text files from the configured input folder, generates speech with Venice AI, writes audio to the output folder, and optionally imports it into the Cove library.",
+            "Reads text files from the configured input folder, generates speech through the AI Provider plugin, writes audio to the output folder, and optionally imports it into the Cove library.",
             supportsParameters: true,
             showInTaskList: true);
     }

@@ -27,9 +27,12 @@ Install a built zip without the registry from **Settings → Extensions → Inst
 
 | Plugin | Id | Version |
 | --- | --- | --- |
-| [Text to Audio](plugins/text-to-audio/README.md) | `com.yourcove.text-to-audio` | 0.1.4 |
+| [AI Provider](plugins/ai-provider/README.md) | `com.binarygeek119.ai-provider` | 0.1.0 |
+| [Text to Audio](plugins/text-to-audio/README.md) | `com.yourcove.text-to-audio` | 0.2.0 |
 
-Text to Audio converts `.txt` / `.md` files through Venice AI speech and writes audio into a folder you set.
+**AI Provider** is the shared OpenAI-compatible backend (Venice by default). Other plugins call it for chat and speech.
+
+**Text to Audio** converts `.txt` / `.md` files through that provider and writes audio into a folder you set. Install AI Provider first.
 
 ## GitHub Actions
 
@@ -72,6 +75,8 @@ High-severity safety hits fail the job. The safety report is uploaded as an arti
 Requires the .NET 10 SDK.
 
 ```bash
+dotnet publish plugins/ai-provider/src/AiProvider/AiProvider.csproj \
+  -c Release -o artifacts/ai-provider -p:UseLocalCoveSdk=false
 dotnet publish plugins/text-to-audio/src/TextToAudio/TextToAudio.csproj \
   -c Release -o artifacts/text-to-audio -p:UseLocalCoveSdk=false
 ```

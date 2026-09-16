@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "extensions": [
     {
+      "name": "AiProvider",
+      "id": "com.binarygeek119.ai-provider",
+      "slug": "ai-provider",
+      "path": "plugins/ai-provider/src/AiProvider",
+      "project": "plugins/ai-provider/src/AiProvider/AiProvider.csproj",
+      "manifest": "plugins/ai-provider/src/AiProvider/extension.json",
+      "tagPrefix": "ai-provider/",
+      "categories": ["ai", "tools", "integration"]
+    },
+    {
       "name": "TextToAudio",
       "id": "com.yourcove.text-to-audio",
       "slug": "text-to-audio",

@@ -1,8 +1,8 @@
 {
   "id": "com.yourcove.text-to-audio",
   "name": "Text to Audio",
-  "version": "0.1.4",
-  "description": "Converts text files to speech with the Venice AI audio API and writes the files into a folder you choose. Optionally imports the generated audio into the Cove library.",
+  "version": "0.2.0",
+  "description": "Converts text files to speech through the shared AI Provider plugin and writes the files into a folder you choose. Optionally imports the generated audio into the Cove library.",
   "author": "yourcove",
   "url": "https://github.com/binarygeek119/cove-ai-plugins",
   "kind": "extension",
@@ -10,22 +10,11 @@
   "minCoveVersion": "1.4.0",
   "entryDll": "TextToAudio.dll",
   "jsBundle": "assets/ui.mjs",
-  "permissions": {
-    "network": ["api.venice.ai"]
+  "sharedAssemblies": ["Cove.Ai.Abstractions"],
+  "dependencies": {
+    "com.binarygeek119.ai-provider": ">=0.1.0"
   },
   "settings": [
-    {
-      "name": "openaiApiKey",
-      "type": "STRING",
-      "displayName": "API key",
-      "description": "Venice API key. Falls back to VENICE_API_KEY, then OPENAI_API_KEY, when empty."
-    },
-    {
-      "name": "openaiUrl",
-      "type": "STRING",
-      "displayName": "API URL",
-      "description": "API base URL. Default is https://api.venice.ai/api/v1. You can also paste a compatible /v1 root or the full /audio/speech path."
-    },
     {
       "name": "inputFolder",
       "type": "STRING",
@@ -42,19 +31,19 @@
       "name": "voice",
       "type": "STRING",
       "displayName": "Voice",
-      "description": "Voice ID for the selected model. Default is af_sky (Kokoro)."
+      "description": "Voice ID for the selected model. Empty uses the AI Provider default."
     },
     {
       "name": "model",
       "type": "STRING",
       "displayName": "Model",
-      "description": "Venice speech model. Default is tts-kokoro."
+      "description": "Speech model. Empty uses the AI Provider default."
     },
     {
       "name": "format",
       "type": "STRING",
       "displayName": "Audio format",
-      "description": "Output format written to the output folder. Default is mp3. Other options: opus, aac, flac, wav."
+      "description": "Output format. Empty uses the AI Provider default. Options: mp3, opus, aac, flac, wav."
     },
     {
       "name": "importIntoLibrary",

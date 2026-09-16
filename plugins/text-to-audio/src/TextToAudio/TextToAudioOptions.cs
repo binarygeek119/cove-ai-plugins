@@ -3,8 +3,6 @@ using System.Text.Json;
 namespace TextToAudio;
 
 internal sealed record TextToAudioOptions(
-    string ApiKey,
-    string BaseUrl,
     string InputFolder,
     string OutputFolder,
     string Voice,
@@ -13,28 +11,12 @@ internal sealed record TextToAudioOptions(
     bool ImportIntoLibrary,
     bool SkipExisting)
 {
-    public const string DefaultVoice = "af_sky";
-    public const string DefaultModel = "tts-kokoro";
-    public const string DefaultFormat = "mp3";
-    public const string DefaultBaseUrl = "https://api.venice.ai/api/v1";
     public static readonly string[] TextExtensions = [".txt", ".md", ".markdown"];
 
     public static TextToAudioOptions FromPluginConfig(
         IReadOnlyDictionary<string, object?>? values,
         IReadOnlyDictionary<string, string>? jobParameters = null)
     {
-        var apiKey = FirstNonEmpty(
-            GetString(values, "openaiApiKey"),
-            Environment.GetEnvironmentVariable("VENICE_API_KEY"),
-            Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
-
-        var baseUrl = FirstNonEmpty(
-            GetString(jobParameters, "openaiUrl"),
-            GetString(values, "openaiUrl"),
-            Environment.GetEnvironmentVariable("VENICE_BASE_URL"),
-            Environment.GetEnvironmentVariable("OPENAI_BASE_URL"),
-            DefaultBaseUrl);
-
         var inputFolder = FirstNonEmpty(
             GetString(jobParameters, "inputFolder"),
             GetString(values, "inputFolder"));
@@ -45,18 +27,15 @@ internal sealed record TextToAudioOptions(
 
         var voice = FirstNonEmpty(
             GetString(jobParameters, "voice"),
-            GetString(values, "voice"),
-            DefaultVoice);
+            GetString(values, "voice"));
 
         var model = FirstNonEmpty(
             GetString(jobParameters, "model"),
-            GetString(values, "model"),
-            DefaultModel);
+            GetString(values, "model"));
 
         var format = FirstNonEmpty(
             GetString(jobParameters, "format"),
-            GetString(values, "format"),
-            DefaultFormat).TrimStart('.').ToLowerInvariant();
+            GetString(values, "format")).TrimStart('.').ToLowerInvariant();
 
         var importIntoLibrary = GetBool(values, "importIntoLibrary", defaultValue: true);
         if (TryGetBool(jobParameters, "importIntoLibrary", out var importOverride))
@@ -69,8 +48,6 @@ internal sealed record TextToAudioOptions(
             skipExisting = false;
 
         return new TextToAudioOptions(
-            apiKey,
-            baseUrl,
             inputFolder,
             outputFolder,
             voice,
@@ -80,25 +57,10 @@ internal sealed record TextToAudioOptions(
             skipExisting);
     }
 
-    public string OutputExtension => "." + Format;
-
-    public string SpeechUrl => ResolveSpeechUrl(BaseUrl);
+    public string OutputExtension(string resolvedFormat) => "." + resolvedFormat.TrimStart('.').ToLowerInvariant();
 
     public void Validate()
     {
-        if (!Uri.TryCreate(SpeechUrl, UriKind.Absolute, out var speechUri)
-            || (speechUri.Scheme != Uri.UriSchemeHttp && speechUri.Scheme != Uri.UriSchemeHttps))
-        {
-            throw new InvalidOperationException(
-                "Set a valid API URL, such as https://api.venice.ai/api/v1 or a compatible /v1 endpoint.");
-        }
-
-        var requiresKey = speechUri.Host.Equals("api.venice.ai", StringComparison.OrdinalIgnoreCase)
-            || speechUri.Host.Equals("api.openai.com", StringComparison.OrdinalIgnoreCase);
-        if (requiresKey && string.IsNullOrWhiteSpace(ApiKey))
-            throw new InvalidOperationException(
-                "Set the Venice API key in this extension's settings, or set the VENICE_API_KEY environment variable.");
-
         if (string.IsNullOrWhiteSpace(InputFolder))
             throw new InvalidOperationException("Set the input folder in this extension's settings.");
 
@@ -118,20 +80,6 @@ internal sealed record TextToAudioOptions(
         }
 
         return string.Empty;
-    }
-
-    internal static string ResolveSpeechUrl(string? raw)
-    {
-        var value = string.IsNullOrWhiteSpace(raw) ? DefaultBaseUrl : raw.Trim();
-        value = value.TrimEnd('/');
-        if (value.EndsWith("/audio/speech", StringComparison.OrdinalIgnoreCase))
-            return value;
-
-        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)
-            || uri.PathAndQuery is "/" or "")
-            return $"{value}/v1/audio/speech";
-
-        return $"{value}/audio/speech";
     }
 
     private static string GetString(IReadOnlyDictionary<string, object?>? values, string key)

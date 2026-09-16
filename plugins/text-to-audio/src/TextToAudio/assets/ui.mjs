@@ -6,8 +6,6 @@ const CONFIG_URL = `/api/plugins/${encodeURIComponent(EXTENSION_ID)}/config`;
 const RUN_URL = `/api/extensions/${encodeURIComponent(EXTENSION_ID)}/jobs/convert-text-files/run`;
 
 const defaults = {
-  openaiApiKey: "",
-  openaiUrl: "https://api.venice.ai/api/v1",
   inputFolder: "",
   outputFolder: "",
   voice: "af_sky",
@@ -53,8 +51,6 @@ function asBool(value, fallback) {
 
 function fromConfig(raw) {
   return {
-    openaiApiKey: asString(raw?.openaiApiKey),
-    openaiUrl: asString(raw?.openaiUrl, defaults.openaiUrl) || defaults.openaiUrl,
     inputFolder: asString(raw?.inputFolder),
     outputFolder: asString(raw?.outputFolder),
     voice: asString(raw?.voice, defaults.voice) || defaults.voice,
@@ -199,23 +195,7 @@ function SettingsPanel() {
 
   return h("div", { className: "space-y-4" },
     h("p", { className: "text-sm text-secondary" },
-      "Text files from the input folder are sent through Venice AI speech and written into the output folder."),
-    h(Field, { label: "Venice API key", description: "Falls back to VENICE_API_KEY, then OPENAI_API_KEY, when empty." },
-      h("input", {
-        type: "password",
-        autoComplete: "off",
-        value: values.openaiApiKey,
-        onChange: (event) => update("openaiApiKey", event.target.value),
-        className: inputClass(),
-      })),
-    h(Field, { label: "API URL", description: "Default is https://api.venice.ai/api/v1. You can also paste a compatible /v1 root or the full /audio/speech URL." },
-      h("input", {
-        type: "url",
-        value: values.openaiUrl,
-        onChange: (event) => update("openaiUrl", event.target.value),
-        placeholder: "https://api.venice.ai/api/v1",
-        className: inputClass(),
-      })),
+      "Text files from the input folder are sent through the shared AI Provider plugin and written into the output folder. Set the API key under Settings → AI Provider."),
     h(Field, { label: "Input folder", description: "Searched recursively for .txt and .md files." },
       h("input", {
         type: "text",

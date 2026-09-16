@@ -1,10 +1,12 @@
+using Cove.Ai.Abstractions;
 using Cove.Core.Interfaces;
+using Cove.Plugins;
 using Microsoft.Extensions.Logging;
 
 namespace TextToAudio;
 
 internal sealed class TextToAudioService(
-    OpenAiSpeechClient speech,
+    IExtensionServiceExchange serviceExchange,
     CoveConfiguration config,
     IScanService scanService,
     ILogger<TextToAudioService> logger)
@@ -16,9 +18,15 @@ internal sealed class TextToAudioService(
         Cove.Plugins.IJobProgress progress,
         CancellationToken ct)
     {
+        var provider = AiProviderLookup.Require(serviceExchange.GetAll<IAiProvider>());
+
         config.PluginConfigurations.TryGetValue(ExtensionId, out var pluginConfig);
         var options = TextToAudioOptions.FromPluginConfig(pluginConfig, parameters);
         options.Validate();
+
+        var format = string.IsNullOrWhiteSpace(options.Format) ? provider.DefaultSpeechFormat : options.Format;
+        var model = string.IsNullOrWhiteSpace(options.Model) ? provider.DefaultSpeechModel : options.Model;
+        var voice = string.IsNullOrWhiteSpace(options.Voice) ? provider.DefaultSpeechVoice : options.Voice;
 
         Directory.CreateDirectory(options.OutputFolder);
 
@@ -45,7 +53,7 @@ internal sealed class TextToAudioService(
                 relative = Path.GetFileName(sourcePath);
             var outputPath = Path.Combine(
                 options.OutputFolder,
-                Path.ChangeExtension(relative, options.OutputExtension));
+                Path.ChangeExtension(relative, options.OutputExtension(format)));
 
             progress.Report(
                 (double)i / files.Count,
@@ -69,7 +77,7 @@ internal sealed class TextToAudioService(
                 }
 
                 Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-                await WriteSpeechAsync(options, text, outputPath, ct).ConfigureAwait(false);
+                await WriteSpeechAsync(provider, model, voice, format, text, outputPath, ct).ConfigureAwait(false);
                 converted++;
 
                 if (options.ImportIntoLibrary)
@@ -97,16 +105,18 @@ internal sealed class TextToAudioService(
     }
 
     private async Task WriteSpeechAsync(
-        TextToAudioOptions options,
+        IAiProvider provider,
+        string model,
+        string voice,
+        string format,
         string text,
         string outputPath,
         CancellationToken ct)
     {
-        var chunks = SplitForSpeech(text, OpenAiSpeechClient.MaxInputCharacters).ToList();
+        var chunks = SplitForSpeech(text, provider.MaxSpeechCharacters).ToList();
         if (chunks.Count == 1)
         {
-            var audio = await speech.SynthesizeAsync(
-                options.SpeechUrl, options.ApiKey, options.Model, options.Voice, options.Format, chunks[0], ct)
+            var audio = await provider.SpeechAsync(new AiSpeechRequest(chunks[0], model, voice, format), ct)
                 .ConfigureAwait(false);
             await File.WriteAllBytesAsync(outputPath, audio, ct).ConfigureAwait(false);
             return;
@@ -120,8 +130,7 @@ internal sealed class TextToAudioService(
         for (var i = 0; i < chunks.Count; i++)
         {
             logger.LogInformation("Synthesizing chunk {Index}/{Count} for {Output}", i + 1, chunks.Count, outputPath);
-            var audio = await speech.SynthesizeAsync(
-                options.SpeechUrl, options.ApiKey, options.Model, options.Voice, options.Format, chunks[i], ct)
+            var audio = await provider.SpeechAsync(new AiSpeechRequest(chunks[i], model, voice, format), ct)
                 .ConfigureAwait(false);
             await output.WriteAsync(audio, ct).ConfigureAwait(false);
         }

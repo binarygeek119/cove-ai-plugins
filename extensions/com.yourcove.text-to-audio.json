@@ -2,7 +2,7 @@
   "id": "com.yourcove.text-to-audio",
   "sourceManifestUrl": "https://raw.githubusercontent.com/binarygeek119/cove-ai-plugins/main/plugins/text-to-audio/src/TextToAudio/extension.json",
   "name": "Text to Audio",
-  "description": "Converts text files to speech with the Venice AI audio API and writes the files into a folder you choose. Optionally imports the generated audio into the Cove library.",
+  "description": "Converts text files to speech through the shared AI Provider plugin and writes the files into a folder you choose. Optionally imports the generated audio into the Cove library.",
   "author": "josh",
   "kind": "extension",
   "repositoryUrl": "https://github.com/binarygeek119/cove-ai-plugins",
@@ -16,6 +16,15 @@
       "minCoveVersion": "1.4.0",
       "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/text-to-audio/v0.1.4/com.yourcove.text-to-audio-0.1.4.zip",
       "dependencies": {}
+    },
+    {
+      "version": "0.2.0",
+      "changelog": "Uses the shared AI Provider plugin for API key, URL, chat, and speech.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/text-to-audio/v0.2.0/com.yourcove.text-to-audio-0.2.0.zip",
+      "dependencies": {
+        "com.binarygeek119.ai-provider": ">=0.1.0"
+      }
     }
   ]
 }

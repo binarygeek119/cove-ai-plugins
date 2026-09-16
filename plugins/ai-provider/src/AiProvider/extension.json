@@ -1,0 +1,55 @@
+{
+  "id": "com.binarygeek119.ai-provider",
+  "name": "AI Provider",
+  "version": "0.1.0",
+  "description": "Shared OpenAI-compatible AI backend (Venice by default) that other Cove plugins use for chat and speech.",
+  "author": "josh",
+  "url": "https://github.com/binarygeek119/cove-ai-plugins",
+  "kind": "extension",
+  "categories": ["ai", "tools", "integration"],
+  "minCoveVersion": "1.4.0",
+  "entryDll": "AiProvider.dll",
+  "jsBundle": "assets/ui.mjs",
+  "sharedAssemblies": ["Cove.Ai.Abstractions"],
+  "permissions": {
+    "network": ["api.venice.ai", "api.openai.com"]
+  },
+  "settings": [
+    {
+      "name": "apiKey",
+      "type": "STRING",
+      "displayName": "API key",
+      "description": "Bearer token. Falls back to VENICE_API_KEY, then OPENAI_API_KEY, when empty."
+    },
+    {
+      "name": "baseUrl",
+      "type": "STRING",
+      "displayName": "API URL",
+      "description": "OpenAI-compatible base URL. Default is https://api.venice.ai/api/v1."
+    },
+    {
+      "name": "chatModel",
+      "type": "STRING",
+      "displayName": "Chat model",
+      "description": "Default chat model for plugins that call IAiProvider.ChatAsync."
+    },
+    {
+      "name": "speechModel",
+      "type": "STRING",
+      "displayName": "Speech model",
+      "description": "Default speech model. Default is tts-kokoro."
+    },
+    {
+      "name": "speechVoice",
+      "type": "STRING",
+      "displayName": "Speech voice",
+      "description": "Default speech voice. Default is af_sky."
+    },
+    {
+      "name": "speechFormat",
+      "type": "STRING",
+      "displayName": "Speech format",
+      "description": "Default audio format: mp3, opus, aac, flac, or wav."
+    }
+  ]
+}

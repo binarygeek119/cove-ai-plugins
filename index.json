@@ -2,6 +2,9 @@
   "schemaVersion": "2.0",
   "extensions": [
     {
+      "id": "com.binarygeek119.ai-provider"
+    },
+    {
       "id": "com.yourcove.text-to-audio"
     }
   ]

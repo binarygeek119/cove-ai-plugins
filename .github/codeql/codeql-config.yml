@@ -2,6 +2,7 @@ name: Cove plugin security
 
 paths:
   - plugins/**
+  - shared/**
   - scripts/**
   - .github/workflows/**
 
