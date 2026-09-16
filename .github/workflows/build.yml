@@ -1,0 +1,147 @@
+name: Build plugins
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "plugins/**"
+      - "Directory.Build.props"
+      - "global.json"
+      - "scripts/**"
+      - ".github/workflows/build.yml"
+  push:
+    branches: [main]
+    paths:
+      - "plugins/**"
+      - "Directory.Build.props"
+      - "global.json"
+      - "scripts/**"
+      - ".github/workflows/build.yml"
+    tags:
+      - "*/v*"
+  workflow_dispatch:
+    inputs:
+      plugin:
+        description: "Plugin slug, id, or all"
+        required: false
+        default: "all"
+
+env:
+  DOTNET_VERSION: "10.0.x"
+
+permissions:
+  contents: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plugins.outputs.matrix }}
+      count: ${{ steps.plugins.outputs.count }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect updated plugins
+        id: plugins
+        env:
+          FORCE_ALL_PLUGINS: ${{ github.event_name == 'workflow_dispatch' && (inputs.plugin == 'all' || inputs.plugin == '') }}
+          PLUGIN_FILTER: ${{ github.event_name == 'workflow_dispatch' && inputs.plugin || (startsWith(github.ref, 'refs/tags/') && github.ref_name || '') }}
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+        run: node scripts/changed-plugins.mjs
+
+  build:
+    needs: detect
+    if: needs.detect.outputs.count != '0'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.detect.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          PREFIX="${{ matrix.tagPrefix }}"
+          if [[ "${GITHUB_REF}" == refs/tags/* && "$TAG" == "$PREFIX"* ]]; then
+            echo "value=${TAG#"${PREFIX}"v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ matrix.version }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ matrix.project }} -p:UseLocalCoveSdk=false
+
+      - name: Build
+        run: >
+          dotnet build ${{ matrix.project }} -c Release --no-restore
+          -p:UseLocalCoveSdk=false
+          -p:Version=${{ steps.version.outputs.value }}
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Publish
+        run: >
+          dotnet publish ${{ matrix.project }} -c Release --no-build
+          -o artifacts/${{ matrix.slug }}
+          -p:UseLocalCoveSdk=false
+          -p:Version=${{ steps.version.outputs.value }}
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Stamp packaged extension.json version
+        run: |
+          node -e "
+            const fs = require('fs');
+            const file = 'artifacts/${{ matrix.slug }}/extension.json';
+            const json = JSON.parse(fs.readFileSync(file, 'utf8'));
+            json.version = '${{ steps.version.outputs.value }}';
+            fs.writeFileSync(file, JSON.stringify(json, null, 2) + '\n');
+          "
+
+      - name: Package
+        shell: bash
+        run: |
+          cd artifacts/${{ matrix.slug }}
+          zip -X -r "../../${{ matrix.id }}-${{ steps.version.outputs.value }}.zip" .
+
+      - name: Upload plugin zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.id }}-${{ steps.version.outputs.value }}
+          path: ${{ matrix.id }}-${{ steps.version.outputs.value }}.zip
+          if-no-files-found: error
+
+      - name: Check whether this version is already released
+        id: release
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          TAG="${{ matrix.tagPrefix }}v${{ steps.version.outputs.value }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag ${TAG} already exists; skipping GitHub Release."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        if: github.event_name != 'pull_request' && steps.release.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ matrix.name }} v${{ steps.version.outputs.value }}
+          files: ${{ matrix.id }}-${{ steps.version.outputs.value }}.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true

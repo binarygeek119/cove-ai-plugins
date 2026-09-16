@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <CoveSdkVersion Condition="'$(CoveSdkVersion)' == ''">1.4.1</CoveSdkVersion>
+    <LocalCoveSdkPath>$(MSBuildThisFileDirectory)..\cove\src\Cove.Sdk\Cove.Sdk.csproj</LocalCoveSdkPath>
+    <UseLocalCoveSdk Condition="'$(UseLocalCoveSdk)' == '' and Exists('$(LocalCoveSdkPath)')">true</UseLocalCoveSdk>
+    <UseLocalCoveSdk Condition="'$(UseLocalCoveSdk)' == ''">false</UseLocalCoveSdk>
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>moderate</NuGetAuditLevel>
+  </PropertyGroup>
+</Project>

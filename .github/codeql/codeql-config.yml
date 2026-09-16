@@ -1,0 +1,9 @@
+name: Cove plugin security
+
+paths:
+  - plugins/**
+  - scripts/**
+  - .github/workflows/**
+
+paths-ignore:
+  - "**/*.md"

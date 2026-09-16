@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/plugins/text-to-audio/">
+    <Project Path="plugins/text-to-audio/src/TextToAudio/TextToAudio.csproj" />
+  </Folder>
+</Solution>

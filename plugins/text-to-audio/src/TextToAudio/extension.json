@@ -1,0 +1,72 @@
+{
+  "id": "com.yourcove.text-to-audio",
+  "name": "Text to Audio",
+  "version": "0.1.4",
+  "description": "Converts text files to speech with the Venice AI audio API and writes the files into a folder you choose. Optionally imports the generated audio into the Cove library.",
+  "author": "yourcove",
+  "url": "https://github.com/binarygeek119/cove-ai-plugins",
+  "kind": "extension",
+  "categories": ["ai", "tools", "import", "automation"],
+  "minCoveVersion": "1.4.0",
+  "entryDll": "TextToAudio.dll",
+  "jsBundle": "assets/ui.mjs",
+  "permissions": {
+    "network": ["api.venice.ai"]
+  },
+  "settings": [
+    {
+      "name": "openaiApiKey",
+      "type": "STRING",
+      "displayName": "API key",
+      "description": "Venice API key. Falls back to VENICE_API_KEY, then OPENAI_API_KEY, when empty."
+    },
+    {
+      "name": "openaiUrl",
+      "type": "STRING",
+      "displayName": "API URL",
+      "description": "API base URL. Default is https://api.venice.ai/api/v1. You can also paste a compatible /v1 root or the full /audio/speech path."
+    },
+    {
+      "name": "inputFolder",
+      "type": "STRING",
+      "displayName": "Input folder",
+      "description": "Folder of text files to convert. Searched recursively for .txt and .md files."
+    },
+    {
+      "name": "outputFolder",
+      "type": "STRING",
+      "displayName": "Output folder",
+      "description": "Folder where generated audio files are written. Add this path as a Cove library folder if you want scans to pick them up too."
+    },
+    {
+      "name": "voice",
+      "type": "STRING",
+      "displayName": "Voice",
+      "description": "Voice ID for the selected model. Default is af_sky (Kokoro)."
+    },
+    {
+      "name": "model",
+      "type": "STRING",
+      "displayName": "Model",
+      "description": "Venice speech model. Default is tts-kokoro."
+    },
+    {
+      "name": "format",
+      "type": "STRING",
+      "displayName": "Audio format",
+      "description": "Output format written to the output folder. Default is mp3. Other options: opus, aac, flac, wav."
+    },
+    {
+      "name": "importIntoLibrary",
+      "type": "BOOLEAN",
+      "displayName": "Import into Cove library",
+      "description": "When enabled, each generated audio file is imported as a Cove audio item after it is written."
+    },
+    {
+      "name": "skipExisting",
+      "type": "BOOLEAN",
+      "displayName": "Skip existing audio",
+      "description": "When enabled, files that already have a matching audio file in the output folder are skipped."
+    }
+  ]
+}

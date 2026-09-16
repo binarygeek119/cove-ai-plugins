@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "2.0",
+  "extensions": [
+    {
+      "id": "com.yourcove.text-to-audio"
+    }
+  ]
+}

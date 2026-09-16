@@ -1,0 +1,160 @@
+name: Security and safety
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: "10.0.x"
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Scan for leaked secrets
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  plugin-safety:
+    name: Plugin safety
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Scan plugins for unsafe APIs
+        run: node scripts/scan-plugin-safety.mjs
+
+      - name: Upload safety report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-safety-report
+          path: artifacts/security/plugin-safety.json
+          if-no-files-found: ignore
+
+  nuget-audit:
+    name: NuGet vulnerability audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore with NuGet audit
+        run: >
+          dotnet restore CovePlugins.slnx
+          -p:UseLocalCoveSdk=false
+          -p:NuGetAudit=true
+          -p:NuGetAuditMode=all
+          -p:NuGetAuditLevel=moderate
+          -p:WarningsAsErrors=NU1901%3BNU1902%3BNU1903%3BNU1904
+
+      - name: List vulnerable packages
+        run: |
+          mkdir -p artifacts/security
+          set +e
+          dotnet list CovePlugins.slnx package --vulnerable --include-transitive --format json \
+            > artifacts/security/nuget-vulnerabilities.json
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "dotnet list package --vulnerable failed."
+            cat artifacts/security/nuget-vulnerabilities.json
+            exit "$status"
+          fi
+          python3 - <<'PY'
+          import json, sys
+          from pathlib import Path
+          data = json.loads(Path("artifacts/security/nuget-vulnerabilities.json").read_text())
+          hits = []
+          for project in data.get("projects", []):
+              for framework in project.get("frameworks", []):
+                  for key in ("topLevelPackages", "transitivePackages"):
+                      for pkg in framework.get(key, []):
+                          for vuln in pkg.get("vulnerabilities", []):
+                              hits.append((pkg.get("id"), vuln.get("severity"), vuln.get("advisoryurl")))
+          if hits:
+              print("Vulnerable packages:")
+              for item in hits:
+                  print(f"  {item[0]}  {item[1]}  {item[2]}")
+              sys.exit(1)
+          print("No vulnerable NuGet packages found.")
+          PY
+
+      - name: Upload NuGet audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-audit-report
+          path: artifacts/security/nuget-vulnerabilities.json
+          if-no-files-found: ignore
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: csharp
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended,security-and-quality
+          config-file: .github/codeql/codeql-config.yml
+
+      - name: Build plugins for CodeQL
+        if: matrix.build-mode == 'manual'
+        run: |
+          dotnet restore CovePlugins.slnx -p:UseLocalCoveSdk=false
+          dotnet build CovePlugins.slnx -c Release --no-restore -p:UseLocalCoveSdk=false
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate

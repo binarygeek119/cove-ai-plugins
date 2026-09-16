@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "extensions": [
+    {
+      "name": "TextToAudio",
+      "id": "com.yourcove.text-to-audio",
+      "slug": "text-to-audio",
+      "path": "plugins/text-to-audio/src/TextToAudio",
+      "project": "plugins/text-to-audio/src/TextToAudio/TextToAudio.csproj",
+      "manifest": "plugins/text-to-audio/src/TextToAudio/extension.json",
+      "tagPrefix": "text-to-audio/",
+      "categories": ["ai", "tools", "import", "automation"]
+    }
+  ]
+}
