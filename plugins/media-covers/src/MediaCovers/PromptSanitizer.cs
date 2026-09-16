@@ -5,34 +5,34 @@ namespace MediaCovers;
 
 /// <summary>
 /// Rewrites library metadata into image-API-safe adult (18+) prompt text.
-/// Family terms become step-family, under-18 language becomes over-18 ageplay,
+/// Family terms become step-family, under-18 language becomes adult over 18,
 /// and non-consent language becomes consensual. Never send minor content to an image model.
 /// </summary>
 internal static partial class PromptSanitizer
 {
     private static readonly (Regex Pattern, string Replacement)[] Replacements =
     [
-        (Whole(@"under[\s-]*age(?:d)?"), "over 18 ageplay"),
-        (Whole(@"under[\s-]*eighteen"), "over 18 ageplay"),
-        (Whole(@"under[\s-]*18"), "over 18 ageplay"),
-        (Whole(@"below[\s-]*18"), "over 18 ageplay"),
-        (Whole(@"less than[\s-]*18"), "over 18 ageplay"),
-        (Whole(@"not[\s-]*18"), "over 18 ageplay"),
-        (Whole(@"eighteen[\s-]*minus"), "over 18 ageplay"),
-        (Whole(@"pre[\s-]*teens?"), "young adult over 18 ageplay"),
-        (Whole(@"tweens?"), "young adult over 18 ageplay"),
-        (Whole(@"jailbaits?"), "young adult over 18 ageplay"),
-        (Whole(@"lolitas?"), "adult over 18 ageplay"),
-        (Whole(@"loli(?:con)?s?"), "adult over 18 ageplay"),
-        (Whole(@"shotas?"), "adult over 18 ageplay"),
+        (Whole(@"under[\s-]*age(?:d)?"), "adult over 18"),
+        (Whole(@"under[\s-]*eighteen"), "adult over 18"),
+        (Whole(@"under[\s-]*18"), "adult over 18"),
+        (Whole(@"below[\s-]*18"), "adult over 18"),
+        (Whole(@"less than[\s-]*18"), "adult over 18"),
+        (Whole(@"not[\s-]*18"), "adult over 18"),
+        (Whole(@"eighteen[\s-]*minus"), "adult over 18"),
+        (Whole(@"pre[\s-]*teens?"), "young adult over 18"),
+        (Whole(@"tweens?"), "young adult over 18"),
+        (Whole(@"jailbaits?"), "young adult over 18"),
+        (Whole(@"lolitas?"), "adult over 18"),
+        (Whole(@"loli(?:con)?s?"), "adult over 18"),
+        (Whole(@"shotas?"), "adult over 18"),
         (Whole(@"pedophiles?"), "adult"),
         (Whole(@"pedos?"), "adult"),
-        (Whole(@"minors?"), "adult over 18 ageplay"),
+        (Whole(@"minors?"), "adult over 18"),
         (Whole(@"children"), "adults over 18"),
         (Whole(@"child"), "adult over 18"),
-        (Whole(@"kids?"), "adult over 18 ageplay"),
-        (Whole(@"teenagers?"), "young adult over 18 ageplay"),
-        (Whole(@"teens?"), "young adult over 18 ageplay"),
+        (Whole(@"kids?"), "adult over 18"),
+        (Whole(@"teenagers?"), "young adult over 18"),
+        (Whole(@"teens?"), "young adult over 18"),
         (Whole(@"schoolgirls?"), "adult college woman"),
         (Whole(@"schoolboys?"), "adult college man"),
         (Whole(@"high[\s-]*school"), "college"),

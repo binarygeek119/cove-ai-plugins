@@ -6,7 +6,8 @@ internal sealed record MediaCoversOptions(
     bool IncludeAudio,
     bool IncludeText,
     int MaxItems,
-    int MaxTextCharacters)
+    int MaxTextCharacters,
+    bool ReplaceAll)
 {
     public const int DefaultMaxTextCharacters = 2000;
 
@@ -44,7 +45,13 @@ internal sealed record MediaCoversOptions(
         if (maxText <= 0)
             maxText = DefaultMaxTextCharacters;
 
-        return new MediaCoversOptions(includeAudio, includeText, maxItems, maxText);
+        var replaceAll = false;
+        if (TryGetBool(jobParameters, "replaceAll", out var replaceOverride))
+            replaceAll = replaceOverride;
+        else if (TryGetBool(jobParameters, "overwrite", out var overwrite))
+            replaceAll = overwrite;
+
+        return new MediaCoversOptions(includeAudio, includeText, maxItems, maxText, replaceAll);
     }
 
     public void Validate()

@@ -17,9 +17,9 @@ public sealed class MediaCoversExtension : JobExtensionBase
                 "Media Covers",
                 order: 90,
                 icon: "image",
-                description: "Generate 16:9 movie-style covers for audio and text items that are missing an image.",
-                searchKeywords: ["cover", "poster", "image", "audio", "text", "ai"])
-            .AddSettingsSection(SettingsTabKey, "Missing covers", "SettingsPanel")
+                description: "Generate or replace 16:9 movie-style covers for audio and text items.",
+                searchKeywords: ["cover", "poster", "image", "audio", "text", "ai", "replace"])
+            .AddSettingsSection(SettingsTabKey, "Covers", "SettingsPanel")
             .Build();
 
     public override void ConfigureServices(IServiceCollection services, ExtensionContext context)
@@ -39,7 +39,7 @@ public sealed class MediaCoversExtension : JobExtensionBase
             "generate-missing-covers",
             "Generate missing media covers",
             GenerateMissingCoversAsync,
-            "Finds audio and text library items with no cover, builds a 16:9 movie-poster prompt from their metadata (and text file content), and stores the generated image.",
+            "Finds audio and text library items, builds a 16:9 movie-poster prompt from their metadata (and text file content), and stores the generated image. Pass replaceAll=true to redo existing covers.",
             supportsParameters: true,
             showInTaskList: true);
     }

@@ -36,7 +36,11 @@ internal sealed class MediaCoversService(
         var targets = await LoadTargetsAsync(db, options, requestedId, ct).ConfigureAwait(false);
         if (targets.Count == 0)
         {
-            progress.Report(1, "No audio or text items are missing covers.");
+            progress.Report(
+                1,
+                options.ReplaceAll
+                    ? "No audio or text items were found."
+                    : "No audio or text items are missing covers.");
             return;
         }
 
@@ -52,7 +56,7 @@ internal sealed class MediaCoversService(
 
             try
             {
-                if (await AlreadyHasCoverAsync(db, target, ct).ConfigureAwait(false))
+                if (!options.ReplaceAll && await AlreadyHasCoverAsync(db, target, ct).ConfigureAwait(false))
                 {
                     skipped++;
                     continue;
@@ -76,7 +80,11 @@ internal sealed class MediaCoversService(
             }
         }
 
-        progress.Report(1, $"Done. Generated {generated}, skipped {skipped}, failed {failed}.");
+        progress.Report(
+            1,
+            options.ReplaceAll
+                ? $"Done. Replaced {generated}, failed {failed}."
+                : $"Done. Generated {generated}, skipped {skipped}, failed {failed}.");
     }
 
     private async Task<AiImageResult> GenerateCoverAsync(
@@ -123,7 +131,9 @@ internal sealed class MediaCoversService(
 
         if (options.IncludeAudio)
         {
-            var query = db.Set<Audio>().AsNoTracking().Where(item => item.ImageBlobId == null);
+            var query = db.Set<Audio>().AsNoTracking();
+            if (!options.ReplaceAll)
+                query = query.Where(item => item.ImageBlobId == null);
             if (requestedId is int audioId)
                 query = query.Where(item => item.Id == audioId);
 
@@ -145,7 +155,9 @@ internal sealed class MediaCoversService(
 
         if (options.IncludeText)
         {
-            var query = db.Set<TextDocument>().AsNoTracking().Where(item => item.ImageBlobId == null);
+            var query = db.Set<TextDocument>().AsNoTracking();
+            if (!options.ReplaceAll)
+                query = query.Where(item => item.ImageBlobId == null);
             if (requestedId is int textId)
                 query = query.Where(item => item.Id == textId);
 
@@ -278,22 +290,31 @@ internal sealed class MediaCoversService(
         return !string.IsNullOrWhiteSpace(textBlobId);
     }
 
-    private static async Task AssignCoverAsync(DbContext db, CoverTarget target, string blobId, CancellationToken ct)
+    private async Task AssignCoverAsync(DbContext db, CoverTarget target, string blobId, CancellationToken ct)
     {
+        string? previousBlobId;
         if (target.Kind == "audio")
         {
             var audio = await db.Set<Audio>().FirstAsync(item => item.Id == target.Id, ct).ConfigureAwait(false);
+            previousBlobId = audio.ImageBlobId;
             audio.ImageBlobId = blobId;
             audio.UpdatedAt = DateTime.UtcNow;
         }
         else
         {
             var document = await db.Set<TextDocument>().FirstAsync(item => item.Id == target.Id, ct).ConfigureAwait(false);
+            previousBlobId = document.ImageBlobId;
             document.ImageBlobId = blobId;
             document.UpdatedAt = DateTime.UtcNow;
         }
 
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        if (!string.IsNullOrWhiteSpace(previousBlobId)
+            && !string.Equals(previousBlobId, blobId, StringComparison.Ordinal))
+        {
+            await blobService.DeleteBlobAsync(previousBlobId, ct).ConfigureAwait(false);
+        }
     }
 
     private static string FirstTitle(string? title, string? path, string fallback)

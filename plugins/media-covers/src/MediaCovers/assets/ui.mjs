@@ -126,8 +126,12 @@ function SettingsPanel() {
     }
   };
 
-  const generate = async () => {
+  const generate = async (replaceAll = false) => {
     if (dirty) await save();
+    if (replaceAll && typeof globalThis.confirm === "function"
+      && !globalThis.confirm("This regenerates covers for every selected audio and text item, including ones that already have an image. Continue?")) {
+      return;
+    }
     setRunning(true);
     setError(null);
     setStatus(null);
@@ -135,10 +139,12 @@ function SettingsPanel() {
       const response = await extensionFetch(RUN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: "{}",
+        body: JSON.stringify(replaceAll ? { replaceAll: "true" } : {}),
       });
       await readJson(response);
-      setStatus("Cover generation started. Watch Cove’s task list for progress.");
+      setStatus(replaceAll
+        ? "Replacing all covers. Watch Cove’s task list for progress."
+        : "Cover generation started. Watch Cove’s task list for progress.");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -152,7 +158,7 @@ function SettingsPanel() {
 
   return h("div", { className: "space-y-4" },
     h("p", { className: "text-sm text-secondary" },
-      "Creates 16:9 movie-poster covers for audio and text items that have no image. Set the API key under Settings → AI Provider."),
+      "Creates 16:9 movie-poster covers for audio and text items. Set the API key under Settings → AI Provider."),
     h(Toggle, {
       label: "Audio items",
       description: "Fill in missing covers using title, details, tags, and performers.",
@@ -166,7 +172,7 @@ function SettingsPanel() {
       onChange: (value) => update("includeText", value),
     }),
     h("div", { className: "grid gap-4 sm:grid-cols-2" },
-      h(Field, { label: "Max items per run", description: "Empty or 0 means all missing covers." },
+      h(Field, { label: "Max items per run", description: "Empty or 0 means every matching item." },
         h("input", {
           type: "text",
           inputMode: "numeric",
@@ -201,10 +207,16 @@ function SettingsPanel() {
       }, "Reset"),
       h("button", {
         type: "button",
-        onClick: () => void generate(),
+        onClick: () => void generate(false),
         disabled: running || saving,
         className: "px-3 py-1 text-xs bg-card hover:bg-card-hover rounded transition-colors disabled:opacity-50",
       }, running ? "Starting…" : "Generate missing covers"),
+      h("button", {
+        type: "button",
+        onClick: () => void generate(true),
+        disabled: running || saving,
+        className: "px-3 py-1 text-xs bg-card hover:bg-card-hover rounded transition-colors disabled:opacity-50",
+      }, running ? "Starting…" : "Replace all covers"),
     ),
   );
 }
