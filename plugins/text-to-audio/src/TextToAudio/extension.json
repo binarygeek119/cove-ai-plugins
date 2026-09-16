@@ -1,9 +1,9 @@
 {
-  "id": "com.yourcove.text-to-audio",
+  "id": "com.binarygeek119.text-to-audio",
   "name": "Text to Audio",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Converts text files to speech through the shared AI Provider plugin and writes the files into a folder you choose. Optionally imports the generated audio into the Cove library.",
-  "author": "yourcove",
+  "author": "binarygeek119",
   "url": "https://github.com/binarygeek119/cove-ai-plugins",
   "kind": "extension",
   "categories": ["ai", "tools", "import", "automation"],

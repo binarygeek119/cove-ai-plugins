@@ -13,7 +13,7 @@
     },
     {
       "name": "TextToAudio",
-      "id": "com.yourcove.text-to-audio",
+      "id": "com.binarygeek119.text-to-audio",
       "slug": "text-to-audio",
       "path": "plugins/text-to-audio/src/TextToAudio",
       "project": "plugins/text-to-audio/src/TextToAudio/TextToAudio.csproj",

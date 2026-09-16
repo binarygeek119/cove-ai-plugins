@@ -3,7 +3,7 @@
   "sourceManifestUrl": "https://raw.githubusercontent.com/binarygeek119/cove-ai-plugins/main/plugins/media-covers/src/MediaCovers/extension.json",
   "name": "Media Covers",
   "description": "Generates 16:9 adult-rated movie-style AI covers for audio and text library items that are missing an image.",
-  "author": "josh",
+  "author": "binarygeek119",
   "kind": "extension",
   "repositoryUrl": "https://github.com/binarygeek119/cove-ai-plugins",
   "readmeUrl": "https://raw.githubusercontent.com/binarygeek119/cove-ai-plugins/main/plugins/media-covers/README.md",

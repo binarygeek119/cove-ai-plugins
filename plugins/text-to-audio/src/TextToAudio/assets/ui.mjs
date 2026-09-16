@@ -1,7 +1,7 @@
 import { createElement as h, useEffect, useState } from "@cove/runtime/react";
 import { extensionFetch } from "@cove/runtime/api";
 
-const EXTENSION_ID = "com.yourcove.text-to-audio";
+const EXTENSION_ID = "com.binarygeek119.text-to-audio";
 const CONFIG_URL = `/api/plugins/${encodeURIComponent(EXTENSION_ID)}/config`;
 const RUN_URL = `/api/extensions/${encodeURIComponent(EXTENSION_ID)}/jobs/convert-text-files/run`;
 

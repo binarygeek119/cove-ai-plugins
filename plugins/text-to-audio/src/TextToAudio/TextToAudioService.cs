@@ -11,7 +11,7 @@ internal sealed class TextToAudioService(
     IScanService scanService,
     ILogger<TextToAudioService> logger)
 {
-    public const string ExtensionId = "com.yourcove.text-to-audio";
+    public const string ExtensionId = "com.binarygeek119.text-to-audio";
 
     public async Task ConvertAsync(
         IReadOnlyDictionary<string, string>? parameters,
