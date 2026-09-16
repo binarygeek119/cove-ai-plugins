@@ -107,7 +107,7 @@ internal sealed class MediaCoversService(
                         SafeMode: false),
                     ct).ConfigureAwait(false);
             }
-            catch (AiImageRejectedException ex)
+            catch (Exception ex) when (ex is AiImageRejectedException or InvalidOperationException)
             {
                 lastReject = ex;
                 logger.LogInformation(

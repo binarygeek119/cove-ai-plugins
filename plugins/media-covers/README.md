@@ -2,7 +2,7 @@
 
 Generates **16:9 movie-poster covers** for Cove **audio** and **text** items that have no image.
 
-Install **AI Provider** 0.2.0+ first (`com.binarygeek119.ai-provider`). Set the API key, URL, and image model there (Venice default is `qwen-image-2`).
+Install **AI Provider** 0.2.1+ first (`com.binarygeek119.ai-provider`). Set the API key, URL, and image model there (Venice default is `qwen-image-2`).
 
 ## What it does
 
@@ -11,7 +11,7 @@ Install **AI Provider** 0.2.0+ first (`com.binarygeek119.ai-provider`). Set the 
 3. Puts **allowed fetish and kink tags** on the cover (costume, props, pose, setting). Disallowed fetishes (minors/ageplay, animals, snuff, and similar) are omitted.
 4. Asks for young adults (early-to-mid 20s) unless the metadata actually calls for older characters (granny, elderly, cougar, and similar).
 5. Rewrites prompt wording so the image API receives adult 18+ language (step-family, over-18 adults, consensual “wanting it”).
-6. If the image model refuses the prompt, it retries with less content (drop text/details, keep fetishes, then title only).
+6. If the image model refuses, it retries with likely trigger content left out (story, some tags, all tags, then a soft title). If that still fails, it makes a **plain stylized title poster** with no people.
 7. Stores the image as a Cove blob and sets it as the item cover.
 
 ## Settings

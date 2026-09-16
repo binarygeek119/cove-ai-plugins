@@ -23,6 +23,13 @@
       "minCoveVersion": "1.4.0",
       "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/ai-provider/v0.2.0/com.binarygeek119.ai-provider-0.2.0.zip",
       "dependencies": {}
+    },
+    {
+      "version": "0.2.1",
+      "changelog": "Keep Venice images when the API still returns image bytes, even if a content-violation header is set.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/ai-provider/v0.2.1/com.binarygeek119.ai-provider-0.2.1.zip",
+      "dependencies": {}
     }
   ]
 }

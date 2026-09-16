@@ -1,7 +1,7 @@
 {
   "id": "com.binarygeek119.ai-provider",
   "name": "AI Provider",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shared OpenAI-compatible AI backend (Venice by default) that other Cove plugins use for chat, speech, and images.",
   "author": "josh",
   "url": "https://github.com/binarygeek119/cove-ai-plugins",

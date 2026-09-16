@@ -165,10 +165,16 @@ internal sealed class OpenAiCompatibleAiProvider(HttpClient http, CoveConfigurat
         if (!response.IsSuccessStatusCode)
             throw ImageFailure(response, body);
 
-        if (IsVeniceContentViolation(response))
-            throw new AiImageRejectedException(FirstNonEmpty(body, "The image API refused this prompt."));
+        if (TryParseImageResponse(body, out var image))
+            return image;
 
-        return ParseImageResponse(body);
+        if (IsVeniceContentViolation(response) || LooksLikeContentRejection((int)response.StatusCode, body))
+        {
+            throw new AiImageRejectedException(
+                "The image API refused this prompt and returned no image.");
+        }
+
+        throw new InvalidOperationException("The image API response did not include image data.");
     }
 
     private static readonly JsonSerializerOptions ImageJsonOptions = new()
@@ -179,10 +185,17 @@ internal sealed class OpenAiCompatibleAiProvider(HttpClient http, CoveConfigurat
 
     private static Exception ImageFailure(HttpResponseMessage response, string body)
     {
-        var message = $"Image request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {body}";
+        var message = $"Image request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {Truncate(body)}";
         if (IsVeniceContentViolation(response) || LooksLikeContentRejection((int)response.StatusCode, body))
             return new AiImageRejectedException(message);
         return new InvalidOperationException(message);
+    }
+
+    private static string Truncate(string body, int max = 400)
+    {
+        if (string.IsNullOrEmpty(body) || body.Length <= max)
+            return body;
+        return body[..max] + "…";
     }
 
     private static bool IsVeniceContentViolation(HttpResponseMessage response)
@@ -208,39 +221,61 @@ internal sealed class OpenAiCompatibleAiProvider(HttpClient http, CoveConfigurat
             || lower.Contains("unsafe", StringComparison.Ordinal);
     }
 
-    private static AiImageResult ParseImageResponse(string body)
+    private static bool TryParseImageResponse(string body, out AiImageResult image)
     {
-        using var document = JsonDocument.Parse(string.IsNullOrWhiteSpace(body) ? "{}" : body);
-        var root = document.RootElement;
-
-        if (root.TryGetProperty("images", out var images)
-            && images.ValueKind == JsonValueKind.Array
-            && images.GetArrayLength() > 0
-            && images[0].ValueKind == JsonValueKind.String)
+        image = null!;
+        try
         {
-            var bytes = DecodeBase64Image(images[0].GetString());
-            return new AiImageResult(bytes, DetectImageContentType(bytes));
-        }
+            using var document = JsonDocument.Parse(string.IsNullOrWhiteSpace(body) ? "{}" : body);
+            var root = document.RootElement;
 
-        if (root.TryGetProperty("data", out var data)
-            && data.ValueKind == JsonValueKind.Array
-            && data.GetArrayLength() > 0)
-        {
-            var item = data[0];
-            if (item.TryGetProperty("b64_json", out var b64) && b64.ValueKind == JsonValueKind.String)
+            if (root.TryGetProperty("images", out var images)
+                && images.ValueKind == JsonValueKind.Array
+                && images.GetArrayLength() > 0
+                && images[0].ValueKind == JsonValueKind.String)
             {
-                var bytes = DecodeBase64Image(b64.GetString());
-                return new AiImageResult(bytes, DetectImageContentType(bytes));
+                var payload = images[0].GetString();
+                if (!string.IsNullOrWhiteSpace(payload))
+                {
+                    var bytes = DecodeBase64Image(payload);
+                    if (bytes.Length > 0)
+                    {
+                        image = new AiImageResult(bytes, DetectImageContentType(bytes));
+                        return true;
+                    }
+                }
             }
 
-            if (item.TryGetProperty("url", out var url) && url.ValueKind == JsonValueKind.String)
+            if (root.TryGetProperty("data", out var data)
+                && data.ValueKind == JsonValueKind.Array
+                && data.GetArrayLength() > 0)
             {
-                throw new InvalidOperationException(
-                    "The image API returned a URL instead of image bytes. Use a provider that returns b64_json or Venice /image/generate.");
+                var item = data[0];
+                if (item.TryGetProperty("b64_json", out var b64) && b64.ValueKind == JsonValueKind.String)
+                {
+                    var payload = b64.GetString();
+                    if (!string.IsNullOrWhiteSpace(payload))
+                    {
+                        var bytes = DecodeBase64Image(payload);
+                        if (bytes.Length > 0)
+                        {
+                            image = new AiImageResult(bytes, DetectImageContentType(bytes));
+                            return true;
+                        }
+                    }
+                }
             }
         }
+        catch (JsonException)
+        {
+            return false;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
 
-        throw new InvalidOperationException("The image API response did not include image data.");
+        return false;
     }
 
     private static byte[] DecodeBase64Image(string? value)

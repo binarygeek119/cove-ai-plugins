@@ -54,6 +54,15 @@
       "dependencies": {
         "com.binarygeek119.ai-provider": ">=0.2.0"
       }
+    },
+    {
+      "version": "0.1.5",
+      "changelog": "Retry refused covers by dropping likely trigger content, then fall back to a plain stylized title poster.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/media-covers/v0.1.5/com.binarygeek119.media-covers-0.1.5.zip",
+      "dependencies": {
+        "com.binarygeek119.ai-provider": ">=0.2.1"
+      }
     }
   ]
 }
