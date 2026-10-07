@@ -10,6 +10,7 @@ const defaults = {
   includeText: true,
   maxItems: "",
   maxTextCharacters: "2000",
+  imageModel: "chroma",
 };
 
 function asString(value, fallback = "") {
@@ -33,6 +34,7 @@ function fromConfig(raw) {
     includeText: asBool(raw?.includeText, defaults.includeText),
     maxItems: asString(raw?.maxItems, defaults.maxItems),
     maxTextCharacters: asString(raw?.maxTextCharacters, defaults.maxTextCharacters) || defaults.maxTextCharacters,
+    imageModel: asString(raw?.imageModel, defaults.imageModel) || defaults.imageModel,
   };
 }
 
@@ -158,7 +160,7 @@ function SettingsPanel() {
 
   return h("div", { className: "space-y-4" },
     h("p", { className: "text-sm text-secondary" },
-      "Creates 16:9 movie-poster covers for audio and text items. Set the API key under Settings → AI Provider."),
+      "Creates 16:9 movie-poster covers for audio and text items with Venice chroma. Set the API key under Settings → AI Provider."),
     h(Toggle, {
       label: "Audio items",
       description: "Fill in missing covers using title, details, tags, and performers.",
@@ -190,6 +192,14 @@ function SettingsPanel() {
           className: inputClass(),
         })),
     ),
+    h(Field, { label: "Image model", description: "Venice model used for covers. Default is chroma." },
+      h("input", {
+        type: "text",
+        value: values.imageModel,
+        onChange: (event) => update("imageModel", event.target.value),
+        placeholder: "chroma",
+        className: inputClass(),
+      })),
     error ? h("p", { className: "text-sm text-red-400" }, error) : null,
     status ? h("p", { className: "text-sm text-secondary" }, status) : null,
     h("div", { className: "flex flex-wrap gap-2" },

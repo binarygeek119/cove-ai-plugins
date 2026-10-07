@@ -7,9 +7,11 @@ internal sealed record MediaCoversOptions(
     bool IncludeText,
     int MaxItems,
     int MaxTextCharacters,
-    bool ReplaceAll)
+    bool ReplaceAll,
+    string ImageModel)
 {
     public const int DefaultMaxTextCharacters = 2000;
+    public const string DefaultImageModel = "chroma";
 
     public static MediaCoversOptions FromPluginConfig(
         IReadOnlyDictionary<string, object?>? values,
@@ -51,13 +53,30 @@ internal sealed record MediaCoversOptions(
         else if (TryGetBool(jobParameters, "overwrite", out var overwrite))
             replaceAll = overwrite;
 
-        return new MediaCoversOptions(includeAudio, includeText, maxItems, maxText, replaceAll);
+        var imageModel = FirstNonEmpty(
+            GetString(jobParameters, "model"),
+            GetString(jobParameters, "imageModel"),
+            GetConfigString(values, "imageModel"),
+            DefaultImageModel);
+
+        return new MediaCoversOptions(includeAudio, includeText, maxItems, maxText, replaceAll, imageModel);
     }
 
     public void Validate()
     {
         if (!IncludeAudio && !IncludeText)
             throw new InvalidOperationException("Enable audio items, text items, or both.");
+    }
+
+    private static string FirstNonEmpty(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+                return value.Trim();
+        }
+
+        return string.Empty;
     }
 
     private static string GetString(IReadOnlyDictionary<string, string>? values, string key)
@@ -72,6 +91,21 @@ internal sealed record MediaCoversOptions(
         }
 
         return string.Empty;
+    }
+
+    private static string GetConfigString(IReadOnlyDictionary<string, object?>? values, string key)
+    {
+        if (values is null || !TryGetValue(values, key, out var raw) || raw is null)
+            return string.Empty;
+
+        return raw switch
+        {
+            string text => text.Trim(),
+            JsonElement element when element.ValueKind == JsonValueKind.String => element.GetString()?.Trim() ?? string.Empty,
+            JsonElement element when element.ValueKind is JsonValueKind.True or JsonValueKind.False
+                or JsonValueKind.Number => element.ToString(),
+            _ => raw.ToString()?.Trim() ?? string.Empty,
+        };
     }
 
     private static bool GetBool(IReadOnlyDictionary<string, object?>? values, string key, bool defaultValue)

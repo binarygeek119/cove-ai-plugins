@@ -2,7 +2,7 @@
 
 Generates **16:9 movie-poster covers** for Cove **audio** and **text** items that have no image.
 
-Install **AI Provider** 0.2.2+ first (`com.binarygeek119.ai-provider`). Set the API key, URL, and image model there (Venice default is `qwen-image-2`).
+Install **AI Provider** 0.2.2+ first (`com.binarygeek119.ai-provider`). Set the API key and URL there. Covers use Venice **chroma** by default (override under Settings → Media Covers).
 
 ## What it does
 
@@ -16,7 +16,7 @@ Install **AI Provider** 0.2.2+ first (`com.binarygeek119.ai-provider`). Set the 
 
 ## Settings
 
-In Cove: **Settings → AI Provider** for the API key/URL/image model, then **Settings → Media Covers**.
+In Cove: **Settings → AI Provider** for the API key/URL, then **Settings → Media Covers**.
 
 | Setting | Purpose |
 | --- | --- |
@@ -24,6 +24,7 @@ In Cove: **Settings → AI Provider** for the API key/URL/image model, then **Se
 | Text items | Generate covers for text with no image, using the text as content. |
 | Max items per run | Optional cap. Empty/0 processes every missing cover. |
 | Max text characters | How much of a text file to include. Default 2000. |
+| Image model | Venice image model. Default is `chroma`. |
 
 Run **Generate missing covers** or **Replace all covers** from the settings tab or the Cove task list.
 
@@ -33,3 +34,4 @@ Job parameters:
 - `limit` — max items this run
 - `id` — a single audio or text id
 - `replaceAll` / `overwrite` — `true` to regenerate covers that already exist
+- `model` / `imageModel` — override the image model for this run

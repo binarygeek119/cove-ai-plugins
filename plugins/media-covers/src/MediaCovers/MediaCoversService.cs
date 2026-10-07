@@ -62,7 +62,7 @@ internal sealed class MediaCoversService(
                     continue;
                 }
 
-                var image = await GenerateCoverAsync(provider, target, ct).ConfigureAwait(false);
+                var image = await GenerateCoverAsync(provider, target, options, ct).ConfigureAwait(false);
                 await using var stream = new MemoryStream(image.Bytes, writable: false);
                 var blobId = await blobService.StoreBlobAsync(stream, image.ContentType, ct).ConfigureAwait(false);
                 await AssignCoverAsync(db, target, blobId, ct).ConfigureAwait(false);
@@ -90,6 +90,7 @@ internal sealed class MediaCoversService(
     private async Task<AiImageResult> GenerateCoverAsync(
         IAiProvider provider,
         CoverTarget target,
+        MediaCoversOptions options,
         CancellationToken ct)
     {
         var attempts = CoverPromptBuilder.BuildAttempts(target);
@@ -103,6 +104,7 @@ internal sealed class MediaCoversService(
                     new AiImageRequest(
                         attempt.Prompt,
                         attempt.NegativePrompt,
+                        Model: options.ImageModel,
                         AspectRatio: CoverPromptBuilder.AspectRatio,
                         SafeMode: false),
                     ct).ConfigureAwait(false);
