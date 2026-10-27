@@ -81,7 +81,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     public string Id => ExtensionId;
     public string Name => "Text Downloader";
-    public string Version => "0.1.2";
+    public string Version => "0.1.3";
     public string? Description => "Downloads text stories from additional sites.";
     public string? Author => "binarygeek119";
     public string? Url => "https://github.com/binarygeek119/cove-ai-plugins";
