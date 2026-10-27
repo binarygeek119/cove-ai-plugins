@@ -21,6 +21,12 @@
       "changelog": "Add support for daddyforbaby.blogspot.com, beltedgirls.com, newsexstory.com, gaydemon.com, deviantart.com, storiesonline.net, asstr-mirror.org, and nifty.org. Improve request headers.",
       "minCoveVersion": "1.4.0",
       "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/text-downloader/v0.1.1/com.binarygeek119.text-downloader-0.1.1.zip"
+    },
+    {
+      "version": "0.1.2",
+      "changelog": "Make MatchAsync non-blocking (no network fetch) to avoid 15s timeout. Keep download fetch only.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/text-downloader/v0.1.2/com.binarygeek119.text-downloader-0.1.2.zip"
     }
   ]
 }
