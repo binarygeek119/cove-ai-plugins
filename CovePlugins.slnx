@@ -11,4 +11,7 @@
   <Folder Name="/plugins/media-covers/">
     <Project Path="plugins/media-covers/src/MediaCovers/MediaCovers.csproj" />
   </Folder>
+  <Folder Name="/plugins/text-downloader/">
+    <Project Path="plugins/text-downloader/src/TextDownloader/TextDownloader.csproj" />
+  </Folder>
 </Solution>

@@ -30,6 +30,16 @@
       "manifest": "plugins/media-covers/src/MediaCovers/extension.json",
       "tagPrefix": "media-covers/",
       "categories": ["ai", "tools", "automation"]
+    },
+    {
+      "name": "TextDownloader",
+      "id": "com.binarygeek119.text-downloader",
+      "slug": "text-downloader",
+      "path": "plugins/text-downloader/src/TextDownloader",
+      "project": "plugins/text-downloader/src/TextDownloader/TextDownloader.csproj",
+      "manifest": "plugins/text-downloader/src/TextDownloader/extension.json",
+      "tagPrefix": "text-downloader/",
+      "categories": ["downloader", "text"]
     }
   ]
 }

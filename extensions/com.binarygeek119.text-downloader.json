@@ -1,0 +1,20 @@
+{
+  "id": "com.binarygeek119.text-downloader",
+  "sourceManifestUrl": "https://raw.githubusercontent.com/binarygeek119/cove-ai-plugins/main/plugins/text-downloader/src/TextDownloader/extension.json",
+  "name": "Text Downloader",
+  "description": "Downloads text stories from additional sites. Add new sites by extending TextDownloaderExtension.",
+  "author": "binarygeek119",
+  "kind": "extension",
+  "repositoryUrl": "https://github.com/binarygeek119/cove-ai-plugins",
+  "readmeUrl": "https://raw.githubusercontent.com/binarygeek119/cove-ai-plugins/main/plugins/text-downloader/README.md",
+  "categories": ["downloader", "text"],
+  "screenshots": [],
+  "versions": [
+    {
+      "version": "0.1.0",
+      "changelog": "Initial release: second downloader provider for text stories from additional sites.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/text-downloader/v0.1.0/com.binarygeek119.text-downloader-0.1.0.zip"
+    }
+  ]
+}
