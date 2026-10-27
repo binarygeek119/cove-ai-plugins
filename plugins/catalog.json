@@ -9,7 +9,11 @@
       "project": "plugins/ai-provider/src/AiProvider/AiProvider.csproj",
       "manifest": "plugins/ai-provider/src/AiProvider/extension.json",
       "tagPrefix": "ai-provider/",
-      "categories": ["ai", "tools", "integration"]
+      "categories": [
+        "ai",
+        "tools",
+        "integration"
+      ]
     },
     {
       "name": "TextToAudio",
@@ -19,7 +23,12 @@
       "project": "plugins/text-to-audio/src/TextToAudio/TextToAudio.csproj",
       "manifest": "plugins/text-to-audio/src/TextToAudio/extension.json",
       "tagPrefix": "text-to-audio/",
-      "categories": ["ai", "tools", "import", "automation"]
+      "categories": [
+        "ai",
+        "tools",
+        "import",
+        "automation"
+      ]
     },
     {
       "name": "MediaCovers",
@@ -29,7 +38,11 @@
       "project": "plugins/media-covers/src/MediaCovers/MediaCovers.csproj",
       "manifest": "plugins/media-covers/src/MediaCovers/extension.json",
       "tagPrefix": "media-covers/",
-      "categories": ["ai", "tools", "automation"]
+      "categories": [
+        "ai",
+        "tools",
+        "automation"
+      ]
     },
     {
       "name": "TextDownloader",
@@ -39,7 +52,23 @@
       "project": "plugins/text-downloader/src/TextDownloader/TextDownloader.csproj",
       "manifest": "plugins/text-downloader/src/TextDownloader/extension.json",
       "tagPrefix": "text-downloader/",
-      "categories": ["downloader", "text"]
+      "categories": [
+        "downloader",
+        "text"
+      ]
+    },
+    {
+      "name": "ImageDownloader",
+      "id": "com.binarygeek119.image-downloader",
+      "slug": "image-downloader",
+      "path": "plugins/image-downloader/src/ImageDownloader",
+      "project": "plugins/image-downloader/src/ImageDownloader/ImageDownloader.csproj",
+      "manifest": "plugins/image-downloader/src/ImageDownloader/extension.json",
+      "tagPrefix": "image-downloader/",
+      "categories": [
+        "downloader",
+        "image"
+      ]
     }
   ]
 }

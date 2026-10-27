@@ -1,0 +1,32 @@
+{
+  "id": "com.binarygeek119.image-downloader",
+  "name": "Image Downloader",
+  "version": "0.1.0",
+  "description": "Downloads images from common image/booru pages such as rule34.xxx, e621, paheal, gelbooru, hentai-foundry, and rule34.us, scraping their metadata.",
+  "author": "binarygeek119",
+  "url": "https://github.com/binarygeek119/cove-ai-plugins",
+  "kind": "extension",
+  "categories": ["downloader", "image"],
+  "minCoveVersion": "1.4.0",
+  "entryDll": "ImageDownloader.dll",
+  "sharedAssemblies": [],
+  "dependencies": {},
+  "settings": [],
+  "permissions": {
+    "network": [
+      "rule34.xxx",
+      "*.rule34.xxx",
+      "e621.net",
+      "*.e621.net",
+      "rule34.paheal.net",
+      "*.paheal.net",
+      "*.paheal-cdn.net",
+      "gelbooru.com",
+      "*.gelbooru.com",
+      "hentai-foundry.com",
+      "*.hentai-foundry.com",
+      "rule34.us",
+      "*.rule34.us"
+    ]
+  }
+}

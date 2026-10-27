@@ -12,6 +12,9 @@
     },
     {
       "id": "com.binarygeek119.text-downloader"
+    },
+    {
+      "id": "com.binarygeek119.image-downloader"
     }
   ]
 }
