@@ -391,8 +391,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     private async Task<TextPageInfo> GetDaddyForBabyTextInfoAsync(string url, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd(BrowserUserAgent);
+        using var request = CreateGetRequest(url);
         using var response = await GetHttpClient().SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
@@ -413,8 +412,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     private async Task<TextPageInfo> GetBeltedGirlsTextInfoAsync(string url, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd(BrowserUserAgent);
+        using var request = CreateGetRequest(url);
         using var response = await GetHttpClient().SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
@@ -435,8 +433,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     private async Task<TextPageInfo> GetNewSexStoryTextInfoAsync(string url, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd(BrowserUserAgent);
+        using var request = CreateGetRequest(url);
         using var response = await GetHttpClient().SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
@@ -457,8 +454,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     private async Task<TextPageInfo> GetGayDemonTextInfoAsync(string url, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd(BrowserUserAgent);
+        using var request = CreateGetRequest(url);
         using var response = await GetHttpClient().SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
@@ -479,8 +475,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     private async Task<TextPageInfo> GetDeviantArtTextInfoAsync(string url, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd(BrowserUserAgent);
+        using var request = CreateGetRequest(url);
         using var response = await GetHttpClient().SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
@@ -501,8 +496,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     private async Task<TextPageInfo> GetStoriesOnlineTextInfoAsync(string url, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd(BrowserUserAgent);
+        using var request = CreateGetRequest(url);
         using var response = await GetHttpClient().SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
@@ -523,8 +517,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     private async Task<TextPageInfo> GetAsstrMirrorTextInfoAsync(string url, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd(BrowserUserAgent);
+        using var request = CreateGetRequest(url);
         using var response = await GetHttpClient().SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
@@ -545,8 +538,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     private async Task<TextPageInfo> GetNiftyTextInfoAsync(string url, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd(BrowserUserAgent);
+        using var request = CreateGetRequest(url);
         using var response = await GetHttpClient().SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
@@ -557,6 +549,15 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
             throw new InvalidOperationException("The page was downloaded, but the text could not be found.");
 
         return new TextPageInfo(title, body);
+    }
+
+    private static HttpRequestMessage CreateGetRequest(string url)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.UserAgent.ParseAdd(BrowserUserAgent);
+        request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        request.Headers.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
+        return request;
     }
 
     private HttpClient GetHttpClient()
