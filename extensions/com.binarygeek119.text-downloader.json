@@ -15,6 +15,12 @@
       "changelog": "Initial release: second downloader provider for text stories from additional sites.",
       "minCoveVersion": "1.4.0",
       "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/text-downloader/v0.1.0/com.binarygeek119.text-downloader-0.1.0.zip"
+    },
+    {
+      "version": "0.1.1",
+      "changelog": "Add support for daddyforbaby.blogspot.com, beltedgirls.com, newsexstory.com, gaydemon.com, deviantart.com, storiesonline.net, asstr-mirror.org, and nifty.org. Improve request headers.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/text-downloader/v0.1.1/com.binarygeek119.text-downloader-0.1.1.zip"
     }
   ]
 }
