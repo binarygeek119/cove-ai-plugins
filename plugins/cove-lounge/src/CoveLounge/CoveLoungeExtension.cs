@@ -1,11 +1,13 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Cove.Core.Auth;
 using Cove.Core.Interfaces;
 using Cove.Plugins;
 using Cove.Sdk;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Routing;
@@ -57,6 +59,24 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
             return Results.Ok(apps);
         });
 
+        endpoints.MapGet($"{prefix}/health", async (CancellationToken ct) =>
+        {
+            try
+            {
+                await using var scope = (_services ?? throw new InvalidOperationException("Extension not initialized."))
+                    .GetRequiredService<IExtensionServiceScopeFactory>().CreateAsyncScope();
+                using var db = CoveDb.Require(scope.ServiceProvider);
+                var canConnect = await db.Database.CanConnectAsync(ct);
+                return canConnect
+                    ? Results.Ok(new { status = "ok" })
+                    : Results.Problem("Database connectivity check failed.", statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+        }).AllowCoveAnonymous();
+
         endpoints.MapPost($"{prefix}/connect", async (HttpContext context, ConnectRequest request, CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(request.Pin))
@@ -70,7 +90,21 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
 
             var publicUrl = GetConfig(pluginConfig, "covePublicUrl");
             var internalUrl = GetConfig(pluginConfig, "coveInternalUrl");
-            var apiKey = Guid.NewGuid().ToString("N");
+
+            var principalAccessor = services.GetRequiredService<ICurrentPrincipalAccessor>();
+            var principal = principalAccessor.Current;
+            if (principal?.UserId is not int userId)
+                return Results.Unauthorized();
+
+            string apiKey;
+            Guid apiTokenId;
+            await using (var scope = services.GetRequiredService<IExtensionServiceScopeFactory>().CreateAsyncScope())
+            {
+                var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
+                var issued = await tokenService.CreateApiTokenAsync(userId, "CoveLounge", null, null, principal, ct);
+                apiKey = issued.PlaintextToken;
+                apiTokenId = issued.Id;
+            }
 
             var primary = string.IsNullOrWhiteSpace(publicUrl) ? internalUrl : publicUrl;
 
@@ -96,6 +130,7 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
                     string.IsNullOrWhiteSpace(request.Label) ? $"CoveLounge app {apps.Count + 1}" : request.Label!,
                     primary,
                     apiKey,
+                    apiTokenId,
                     DateTimeOffset.UtcNow.ToString("O")));
                 await SaveAppsAsync(apps, ct);
                 return Results.Ok(new { connected = true });
@@ -108,9 +143,27 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
         endpoints.MapDelete($"{prefix}/apps/{{appId}}", async (string appId, CancellationToken ct) =>
         {
             var apps = await LoadAppsAsync(ct);
-            var removed = apps.RemoveAll(app => string.Equals(app.Id, appId, StringComparison.Ordinal));
-            if (removed == 0)
+            var app = apps.FirstOrDefault(a => string.Equals(a.Id, appId, StringComparison.Ordinal));
+            if (app is null)
                 return Results.NotFound();
+
+            if (app.ApiTokenId.HasValue)
+            {
+                try
+                {
+                    await using var scope = (_services ?? throw new InvalidOperationException("Extension not initialized."))
+                        .GetRequiredService<IExtensionServiceScopeFactory>().CreateAsyncScope();
+                    var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
+                    var principalAccessor = (_services).GetRequiredService<ICurrentPrincipalAccessor>();
+                    await tokenService.RevokeApiTokenAsync(app.ApiTokenId.Value, principalAccessor.Current, ct);
+                }
+                catch
+                {
+                    // Best-effort revocation; still remove the local record.
+                }
+            }
+
+            apps.RemoveAll(a => string.Equals(a.Id, appId, StringComparison.Ordinal));
             await SaveAppsAsync(apps, ct);
             return Results.NoContent();
         });
@@ -179,6 +232,6 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
         return Convert.ToBase64String(blob);
     }
 
-    private sealed record ConnectedApp(string Id, string Label, string ServerUrl, string ApiKey, string DeliveredAt);
+    private sealed record ConnectedApp(string Id, string Label, string ServerUrl, string ApiKey, Guid? ApiTokenId = null, string DeliveredAt = "");
     private sealed record ConnectRequest(string Pin, string? Label);
 }

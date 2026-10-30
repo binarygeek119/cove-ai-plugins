@@ -1,8 +1,8 @@
 {
   "id": "com.binarygeek119.cove-lounge",
   "name": "CoveLounge QuickPin",
-  "version": "0.1.4",
-  "description": "Connect CoveLounge apps to this Cove server using the quick PIN relay.",
+  "version": "0.1.5",
+  "description": "Connect CoveLounge apps to this Cove server using the quick PIN relay. Pairing now issues a real Cove API key so the app can reach Cove's stream, metadata, engagement, thumbnail, and health endpoints.",
   "author": "binarygeek119",
   "url": "https://github.com/binarygeek119/cove-ai-plugins",
   "kind": "extension",
