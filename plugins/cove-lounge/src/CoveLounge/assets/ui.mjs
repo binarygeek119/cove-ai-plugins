@@ -52,6 +52,12 @@ function SettingsPanel() {
   const [status, setStatus] = useState(null);
 
   const [pin, setPin] = useState("");
+
+  function formatPin(raw) {
+    const n = String(raw ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+    if (n.length <= 4) return n;
+    return n.slice(0, 4) + "-" + n.slice(4);
+  }
   const [label, setLabel] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [connectStatus, setConnectStatus] = useState(null);
@@ -180,11 +186,13 @@ function SettingsPanel() {
     ),
     h("hr", { className: "border-border" }),
     h("h3", { className: "text-sm font-medium" }, "Connect app"),
-    h(Field, { label: "PIN", description: "PIN displayed by the CoveLounge app." },
+    h(Field, { label: "PIN", description: "PIN displayed by the CoveLounge app. Enter the 8 letters/numbers; the dash is added automatically." },
       h("input", {
         type: "text",
         value: pin,
-        onChange: (event) => setPin(event.target.value),
+        onChange: (event) => setPin(formatPin(event.target.value)),
+        placeholder: "XXXX-XXXX",
+        maxLength: 9,
         className: inputClass(),
       })),
     h(Field, { label: "Label (optional)" },
