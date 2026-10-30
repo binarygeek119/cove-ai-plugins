@@ -163,7 +163,7 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
 
     private static string Encrypt(string pin, string plaintext)
     {
-        var key = SHA256.HashData(Encoding.ASCII.GetBytes("Cove QuickPin v1" + pin));
+        var key = SHA256.HashData(Encoding.ASCII.GetBytes("ChannelFlow QuickPin v1" + pin));
         var plainBytes = Encoding.UTF8.GetBytes(plaintext);
         var nonce = RandomNumberGenerator.GetBytes(12);
         var cipherBytes = new byte[plainBytes.Length];
