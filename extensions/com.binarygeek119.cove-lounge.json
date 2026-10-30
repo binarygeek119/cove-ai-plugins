@@ -7,7 +7,10 @@
   "kind": "extension",
   "repositoryUrl": "https://github.com/binarygeek119/cove-ai-plugins",
   "readmeUrl": "https://raw.githubusercontent.com/binarygeek119/cove-ai-plugins/main/plugins/cove-lounge/README.md",
-  "categories": ["integration", "tools"],
+  "categories": [
+    "integration",
+    "tools"
+  ],
   "screenshots": [],
   "versions": [
     {
@@ -15,6 +18,12 @@
       "changelog": "Initial release: quick PIN connection to CoveLounge.",
       "minCoveVersion": "1.4.0",
       "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/cove-lounge/v0.1.0/com.binarygeek119.cove-lounge-0.1.0.zip"
+    },
+    {
+      "version": "0.1.1",
+      "changelog": "Generate Cove API key during pairing; hardwire relay URL.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/cove-lounge/v0.1.1/com.binarygeek119.cove-lounge-0.1.1.zip"
     }
   ]
 }
