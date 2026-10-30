@@ -66,9 +66,7 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
             var config = services.GetRequiredService<CoveConfiguration>();
             var pluginConfig = GetPluginConfig(config);
 
-            var relayUrl = GetConfig(pluginConfig, "relayUrl");
-            if (string.IsNullOrWhiteSpace(relayUrl))
-                relayUrl = "https://covelounge.duckdns.org";
+            const string relayUrl = "https://covelounge.duckdns.org";
 
             var publicUrl = GetConfig(pluginConfig, "covePublicUrl");
             var internalUrl = GetConfig(pluginConfig, "coveInternalUrl");

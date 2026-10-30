@@ -15,12 +15,6 @@
   },
   "settings": [
     {
-      "name": "relayUrl",
-      "type": "STRING",
-      "displayName": "Relay URL",
-      "description": "Quick PIN relay origin. Default: https://covelounge.duckdns.org"
-    },
-    {
       "name": "covePublicUrl",
       "type": "STRING",
       "displayName": "Cove public URL",

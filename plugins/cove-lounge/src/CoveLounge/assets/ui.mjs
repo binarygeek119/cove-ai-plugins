@@ -7,7 +7,6 @@ const APPS_URL = `/api/plugins/${encodeURIComponent(EXTENSION_ID)}/apps`;
 const CONNECT_URL = `/api/plugins/${encodeURIComponent(EXTENSION_ID)}/connect`;
 
 const defaults = {
-  relayUrl: "https://covelounge.duckdns.org",
   covePublicUrl: "",
   coveInternalUrl: "",
   apiKey: "",
@@ -21,7 +20,6 @@ function asString(value, fallback = "") {
 
 function fromConfig(raw) {
   return {
-    relayUrl: asString(raw?.relayUrl, defaults.relayUrl) || defaults.relayUrl,
     covePublicUrl: asString(raw?.covePublicUrl),
     coveInternalUrl: asString(raw?.coveInternalUrl),
     apiKey: asString(raw?.apiKey),
@@ -158,13 +156,6 @@ function SettingsPanel() {
   return h("div", { className: "space-y-4" },
     h("p", { className: "text-sm text-secondary" },
       "Connect a CoveLounge app by entering the PIN it displays. This server sends its Cove URLs and API key through the quick PIN relay."),
-    h(Field, { label: "Relay URL", description: "Quick PIN relay origin." },
-      h("input", {
-        type: "url",
-        value: values.relayUrl,
-        onChange: (event) => update("relayUrl", event.target.value),
-        className: inputClass(),
-      })),
     h(Field, { label: "Cove public URL", description: "Internet-reachable Cove URL." },
       h("input", {
         type: "url",
