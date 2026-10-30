@@ -81,7 +81,7 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
 
     public string Id => ExtensionId;
     public string Name => "Text Downloader";
-    public string Version => "0.1.3";
+    public string Version => "0.1.4";
     public string? Description => "Downloads text stories from additional sites.";
     public string? Author => "binarygeek119";
     public string? Url => "https://github.com/binarygeek119/cove-ai-plugins";
@@ -101,32 +101,41 @@ public sealed class TextDownloaderExtension : IDownloaderProvider
     public IReadOnlyList<DownloaderDescriptor> GetDownloaders() => new[] { DaddyForBabyDownloader, BeltedGirlsDownloader, NewSexStoryDownloader, GayDemonDownloader, DeviantArtDownloader, StoriesOnlineDownloader, AsstrMirrorDownloader, NiftyDownloader };
 
     public Task<DownloaderUrlMatch?> MatchAsync(string url, CancellationToken ct)
+        => Task.FromResult(MatchCore(url));
+
+    public Task<IReadOnlyList<DownloaderUrlMatch>> MatchAllAsync(string url, CancellationToken ct)
+    {
+        var match = MatchCore(url);
+        return Task.FromResult<IReadOnlyList<DownloaderUrlMatch>>(match == null ? [] : [match]);
+    }
+
+    private static DownloaderUrlMatch? MatchCore(string url)
     {
         if (IsDaddyForBabyUrl(url))
-            return Task.FromResult<DownloaderUrlMatch?>(new DownloaderUrlMatch(DaddyForBabyDownloader.Id, url, null, DeriveTitleFromUrl(url, "DaddyForBaby story")));
+            return new DownloaderUrlMatch(DaddyForBabyDownloader.Id, url, null, DeriveTitleFromUrl(url, "DaddyForBaby story"));
 
         if (IsBeltedGirlsUrl(url))
-            return Task.FromResult<DownloaderUrlMatch?>(new DownloaderUrlMatch(BeltedGirlsDownloader.Id, url, null, DeriveTitleFromUrl(url, "Belted Girls story")));
+            return new DownloaderUrlMatch(BeltedGirlsDownloader.Id, url, null, DeriveTitleFromUrl(url, "Belted Girls story"));
 
         if (IsNewSexStoryUrl(url))
-            return Task.FromResult<DownloaderUrlMatch?>(new DownloaderUrlMatch(NewSexStoryDownloader.Id, url, null, DeriveTitleFromUrl(url, "NewSexStory story")));
+            return new DownloaderUrlMatch(NewSexStoryDownloader.Id, url, null, DeriveTitleFromUrl(url, "NewSexStory story"));
 
         if (IsGayDemonUrl(url))
-            return Task.FromResult<DownloaderUrlMatch?>(new DownloaderUrlMatch(GayDemonDownloader.Id, url, null, DeriveTitleFromUrl(url, "GayDemon story")));
+            return new DownloaderUrlMatch(GayDemonDownloader.Id, url, null, DeriveTitleFromUrl(url, "GayDemon story"));
 
         if (IsDeviantArtUrl(url))
-            return Task.FromResult<DownloaderUrlMatch?>(new DownloaderUrlMatch(DeviantArtDownloader.Id, url, null, DeriveTitleFromUrl(url, "DeviantArt literature")));
+            return new DownloaderUrlMatch(DeviantArtDownloader.Id, url, null, DeriveTitleFromUrl(url, "DeviantArt literature"));
 
         if (IsStoriesOnlineUrl(url))
-            return Task.FromResult<DownloaderUrlMatch?>(new DownloaderUrlMatch(StoriesOnlineDownloader.Id, url, null, DeriveTitleFromUrl(url, "StoriesOnline story")));
+            return new DownloaderUrlMatch(StoriesOnlineDownloader.Id, url, null, DeriveTitleFromUrl(url, "StoriesOnline story"));
 
         if (IsAsstrMirrorUrl(url))
-            return Task.FromResult<DownloaderUrlMatch?>(new DownloaderUrlMatch(AsstrMirrorDownloader.Id, url, null, DeriveTitleFromUrl(url, "ASSTR Mirror story")));
+            return new DownloaderUrlMatch(AsstrMirrorDownloader.Id, url, null, DeriveTitleFromUrl(url, "ASSTR Mirror story"));
 
         if (IsNiftyUrl(url))
-            return Task.FromResult<DownloaderUrlMatch?>(new DownloaderUrlMatch(NiftyDownloader.Id, url, null, DeriveTitleFromUrl(url, "Nifty story")));
+            return new DownloaderUrlMatch(NiftyDownloader.Id, url, null, DeriveTitleFromUrl(url, "Nifty story"));
 
-        return Task.FromResult<DownloaderUrlMatch?>(null);
+        return null;
     }
 
     public async Task<DownloaderResult?> DownloadAsync(DownloaderRequest request, IDownloaderHost host, CancellationToken ct)

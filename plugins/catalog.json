@@ -69,6 +69,19 @@
         "downloader",
         "image"
       ]
+    },
+    {
+      "name": "CoveLounge",
+      "id": "com.binarygeek119.cove-lounge",
+      "slug": "cove-lounge",
+      "path": "plugins/cove-lounge/src/CoveLounge",
+      "project": "plugins/cove-lounge/src/CoveLounge/CoveLounge.csproj",
+      "manifest": "plugins/cove-lounge/src/CoveLounge/extension.json",
+      "tagPrefix": "cove-lounge/",
+      "categories": [
+        "integration",
+        "tools"
+      ]
     }
   ]
 }

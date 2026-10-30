@@ -30,8 +30,9 @@ Install a built zip without the registry from **Settings → Extensions → Inst
 | [AI Provider](plugins/ai-provider/README.md) | `com.binarygeek119.ai-provider` | 0.2.2 |
 | [Text to Audio](plugins/text-to-audio/README.md) | `com.binarygeek119.text-to-audio` | 0.2.1 |
 | [Image Downloader](plugins/image-downloader/README.md) | `com.binarygeek119.image-downloader` | 0.1.0 |
+| [CoveLounge QuickPin](plugins/cove-lounge/README.md) | `com.binarygeek119.cove-lounge` | 0.1.0 |
 | [Media Covers](plugins/media-covers/README.md) | `com.binarygeek119.media-covers` | 0.1.7 |
-| [Text Downloader](plugins/text-downloader/README.md) | `com.binarygeek119.text-downloader` | 0.1.0 |
+| [Text Downloader](plugins/text-downloader/README.md) | `com.binarygeek119.text-downloader` | 0.1.4 |
 
 **AI Provider** is the shared OpenAI-compatible backend (Venice by default). Other plugins call it for chat, speech, and images.
 
