@@ -24,6 +24,12 @@
       "changelog": "Generate Cove API key during pairing; hardwire relay URL.",
       "minCoveVersion": "1.4.0",
       "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/cove-lounge/v0.1.1/com.binarygeek119.cove-lounge-0.1.1.zip"
+    },
+    {
+      "version": "0.1.2",
+      "changelog": "Version bump.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/cove-lounge/v0.1.2/com.binarygeek119.cove-lounge-0.1.2.zip"
     }
   ]
 }
