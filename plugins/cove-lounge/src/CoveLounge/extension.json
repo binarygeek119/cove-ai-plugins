@@ -25,12 +25,6 @@
       "type": "STRING",
       "displayName": "Cove internal URL",
       "description": "LAN/internal Cove URL."
-    },
-    {
-      "name": "apiKey",
-      "type": "STRING",
-      "displayName": "Cove API key",
-      "description": "API key the CoveLounge app will use to access Cove."
     }
   ]
 }

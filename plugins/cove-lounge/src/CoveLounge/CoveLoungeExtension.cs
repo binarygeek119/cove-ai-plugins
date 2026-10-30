@@ -70,7 +70,7 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
 
             var publicUrl = GetConfig(pluginConfig, "covePublicUrl");
             var internalUrl = GetConfig(pluginConfig, "coveInternalUrl");
-            var apiKey = GetConfig(pluginConfig, "apiKey");
+            var apiKey = Guid.NewGuid().ToString("N");
 
             var primary = string.IsNullOrWhiteSpace(publicUrl) ? internalUrl : publicUrl;
 
@@ -95,6 +95,7 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
                     Guid.NewGuid().ToString("n"),
                     string.IsNullOrWhiteSpace(request.Label) ? $"CoveLounge app {apps.Count + 1}" : request.Label!,
                     primary,
+                    apiKey,
                     DateTimeOffset.UtcNow.ToString("O")));
                 await SaveAppsAsync(apps, ct);
                 return Results.Ok(new { connected = true });
@@ -178,6 +179,6 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
         return Convert.ToBase64String(blob);
     }
 
-    private sealed record ConnectedApp(string Id, string Label, string ServerUrl, string DeliveredAt);
+    private sealed record ConnectedApp(string Id, string Label, string ServerUrl, string ApiKey, string DeliveredAt);
     private sealed record ConnectRequest(string Pin, string? Label);
 }

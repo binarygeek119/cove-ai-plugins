@@ -9,7 +9,6 @@ const CONNECT_URL = `/api/plugins/${encodeURIComponent(EXTENSION_ID)}/connect`;
 const defaults = {
   covePublicUrl: "",
   coveInternalUrl: "",
-  apiKey: "",
 };
 
 function asString(value, fallback = "") {
@@ -22,7 +21,6 @@ function fromConfig(raw) {
   return {
     covePublicUrl: asString(raw?.covePublicUrl),
     coveInternalUrl: asString(raw?.coveInternalUrl),
-    apiKey: asString(raw?.apiKey),
   };
 }
 
@@ -168,14 +166,6 @@ function SettingsPanel() {
         type: "url",
         value: values.coveInternalUrl,
         onChange: (event) => update("coveInternalUrl", event.target.value),
-        className: inputClass(),
-      })),
-    h(Field, { label: "Cove API key", description: "API key the CoveLounge app will use." },
-      h("input", {
-        type: "password",
-        autoComplete: "off",
-        value: values.apiKey,
-        onChange: (event) => update("apiKey", event.target.value),
         className: inputClass(),
       })),
     error ? h("p", { className: "text-sm text-red-400" }, error) : null,
