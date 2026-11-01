@@ -144,7 +144,9 @@ function SettingsPanel() {
     }
   };
 
-  const [resetCodes, setResetCodes] = useState({});
+  const [resetCodeInput, setResetCodeInput] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetStatus, setResetStatus] = useState(null);
 
   const removeApp = async (appId) => {
     try {
@@ -155,12 +157,23 @@ function SettingsPanel() {
     }
   };
 
-  const generateResetCode = async (appId) => {
+  const verifyReset = async () => {
     setError(null);
+    setResetStatus(null);
     try {
-      const response = await extensionFetch(`${APPS_URL}/${encodeURIComponent(appId)}/reset-code`, { method: "POST" });
+      const response = await extensionFetch(`${APPS_URL.replace("/apps", "")}/reset/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resetCode: resetCodeInput, password: resetPassword }),
+      });
       const data = await readJson(response);
-      setResetCodes((current) => ({ ...current, [appId]: data?.code ?? "" }));
+      if (data?.ok) {
+        setResetStatus("Reset approved. The app can now remove its app PIN.");
+        setResetCodeInput("");
+        setResetPassword("");
+      } else {
+        setResetStatus(data?.error || "Reset not approved.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -226,25 +239,39 @@ function SettingsPanel() {
     h("h3", { className: "text-sm font-medium" }, "Connected apps"),
     appsLoading ? h("p", { className: "text-sm text-secondary" }, "Loading…") : null,
     h("ul", { className: "space-y-2" },
-      apps.map((app) => h("li", { key: app.id, className: "space-y-1 text-sm" },
-        h("div", { className: "flex items-center justify-between gap-2" },
-          h("span", null, `${app.label} — ${app.serverUrl}`),
-          h("div", { className: "flex gap-2" },
-            h("button", {
-              type: "button",
-              onClick: () => void generateResetCode(app.id),
-              className: "px-2 py-1 text-xs bg-card hover:bg-card-hover rounded",
-            }, "Reset code"),
-            h("button", {
-              type: "button",
-              onClick: () => void removeApp(app.id),
-              className: "px-2 py-1 text-xs bg-card hover:bg-card-hover rounded",
-            }, "Remove"),
-          ),
-        ),
-        resetCodes[app.id] ? h("p", { className: "text-xs text-secondary" }, `Reset code: ${resetCodes[app.id]} (enter in the app with your Cove password)`) : null,
+      apps.map((app) => h("li", { key: app.id, className: "flex items-center justify-between gap-2 text-sm" },
+        h("span", null, `${app.label} — ${app.serverUrl}`),
+        h("button", {
+          type: "button",
+          onClick: () => void removeApp(app.id),
+          className: "px-2 py-1 text-xs bg-card hover:bg-card-hover rounded",
+        }, "Remove"),
       )),
     ),
+    h("hr", { className: "border-border" }),
+    h("h3", { className: "text-sm font-medium" }, "App PIN reset"),
+    h("p", { className: "text-xs text-secondary" }, "Enter the reset code shown by the CoveLounge app and your Cove password. On success the app is allowed to remove its app PIN."),
+    h(Field, { label: "Reset code" },
+      h("input", {
+        type: "text",
+        value: resetCodeInput,
+        onChange: (event) => setResetCodeInput(event.target.value),
+        className: inputClass(),
+      })),
+    h(Field, { label: "Cove password" },
+      h("input", {
+        type: "password",
+        value: resetPassword,
+        onChange: (event) => setResetPassword(event.target.value),
+        className: inputClass(),
+      })),
+    resetStatus ? h("p", { className: "text-sm text-secondary" }, resetStatus) : null,
+    h("button", {
+      type: "button",
+      onClick: () => void verifyReset(),
+      disabled: !resetCodeInput.trim() || !resetPassword,
+      className: "px-3 py-1 text-xs bg-accent hover:bg-accent-hover rounded transition-colors disabled:opacity-50",
+    }, "Verify reset"),
   );
 }
 

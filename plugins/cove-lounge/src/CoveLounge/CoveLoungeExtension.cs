@@ -140,20 +140,46 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
             return Results.BadRequest(new { error = string.IsNullOrWhiteSpace(body) ? $"Relay returned {(int)response.StatusCode}." : body });
         });
 
-        endpoints.MapPost($"{prefix}/apps/{{appId}}/reset-code", async (string appId, CancellationToken ct) =>
+        endpoints.MapPost($"{prefix}/reset/register", async (HttpContext context, RegisterResetRequest request, CancellationToken ct) =>
         {
+            if (string.IsNullOrWhiteSpace(request.ResetCode))
+                return Results.BadRequest(new { error = "Reset code is required.", ok = false });
+
+            var token = GetAccessToken(context);
+            if (string.IsNullOrWhiteSpace(token))
+                return Results.Unauthorized();
+
             var apps = await LoadAppsAsync(ct);
-            var app = apps.FirstOrDefault(a => string.Equals(a.Id, appId, StringComparison.Ordinal));
+            var app = apps.FirstOrDefault(a => string.Equals(a.ApiKey, token, StringComparison.Ordinal));
             if (app is null)
                 return Results.NotFound();
 
-            var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString("D6");
-            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code))).ToLowerInvariant();
-            var updated = app with { ResetCodeHash = hash, ResetCodeExpiresAt = DateTimeOffset.UtcNow.AddMinutes(10) };
-            var index = apps.FindIndex(a => string.Equals(a.Id, appId, StringComparison.Ordinal));
-            apps[index] = updated;
+            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(request.ResetCode.Trim()))).ToLowerInvariant();
+            var index = apps.FindIndex(a => string.Equals(a.Id, app.Id, StringComparison.Ordinal));
+            apps[index] = app with { ResetCodeHash = hash, ResetCodeExpiresAt = DateTimeOffset.UtcNow.AddMinutes(10), ResetApproved = false };
             await SaveAppsAsync(apps, ct);
-            return Results.Ok(new { code, expiresAt = updated.ResetCodeExpiresAt });
+            return Results.Ok(new { ok = true });
+        });
+
+        endpoints.MapGet($"{prefix}/reset/status", async (HttpContext context, CancellationToken ct) =>
+        {
+            var token = GetAccessToken(context);
+            if (string.IsNullOrWhiteSpace(token))
+                return Results.Unauthorized();
+
+            var apps = await LoadAppsAsync(ct);
+            var app = apps.FirstOrDefault(a => string.Equals(a.ApiKey, token, StringComparison.Ordinal));
+            if (app is null)
+                return Results.NotFound();
+
+            var approved = app.ResetApproved;
+            if (approved)
+            {
+                var index = apps.FindIndex(a => string.Equals(a.Id, app.Id, StringComparison.Ordinal));
+                apps[index] = app with { ResetApproved = false, ResetCodeHash = null, ResetCodeExpiresAt = null };
+                await SaveAppsAsync(apps, ct);
+            }
+            return Results.Ok(new { approved });
         });
 
         endpoints.MapPost($"{prefix}/reset/verify", async (HttpContext context, ResetVerifyRequest request, CancellationToken ct) =>
@@ -186,7 +212,7 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
                 return Results.Ok(new { ok = false, error = "Cove password is incorrect." });
 
             var index = apps.FindIndex(a => string.Equals(a.Id, app.Id, StringComparison.Ordinal));
-            apps[index] = app with { ResetCodeHash = null, ResetCodeExpiresAt = null };
+            apps[index] = app with { ResetCodeHash = null, ResetCodeExpiresAt = null, ResetApproved = true };
             await SaveAppsAsync(apps, ct);
             return Results.Ok(new { ok = true });
         });
@@ -283,7 +309,18 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
         return Convert.ToBase64String(blob);
     }
 
-    private sealed record ConnectedApp(string Id, string Label, string ServerUrl, string ApiKey, Guid? ApiTokenId = null, string DeliveredAt = "", string? ResetCodeHash = null, DateTimeOffset? ResetCodeExpiresAt = null);
+    private sealed record ConnectedApp(string Id, string Label, string ServerUrl, string ApiKey, Guid? ApiTokenId = null, string DeliveredAt = "", string? ResetCodeHash = null, DateTimeOffset? ResetCodeExpiresAt = null, bool ResetApproved = false);
     private sealed record ConnectRequest(string Pin, string? Label);
     private sealed record ResetVerifyRequest(string ResetCode, string Password);
+    private sealed record RegisterResetRequest(string ResetCode);
+
+    private static string? GetAccessToken(HttpContext context)
+    {
+        if (context.Request.Query.TryGetValue("access_token", out var qs) && !string.IsNullOrWhiteSpace(qs))
+            return qs.ToString();
+        var auth = context.Request.Headers.Authorization.ToString();
+        if (auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return auth["Bearer ".Length..].Trim();
+        return null;
+    }
 }

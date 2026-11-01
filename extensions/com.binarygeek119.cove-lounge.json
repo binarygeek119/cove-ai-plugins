@@ -60,6 +60,12 @@
       "changelog": "Add reset code generation UI for connected apps.",
       "minCoveVersion": "1.4.0",
       "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/cove-lounge/v0.1.7/com.binarygeek119.cove-lounge-0.1.7.zip"
+    },
+    {
+      "version": "0.1.8",
+      "changelog": "App provides reset code; user enters it in plugin with Cove password; plugin returns ok to app.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/cove-lounge/v0.1.8/com.binarygeek119.cove-lounge-0.1.8.zip"
     }
   ]
 }
