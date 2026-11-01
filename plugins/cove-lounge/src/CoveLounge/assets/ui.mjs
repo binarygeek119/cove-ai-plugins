@@ -144,10 +144,23 @@ function SettingsPanel() {
     }
   };
 
+  const [resetCodes, setResetCodes] = useState({});
+
   const removeApp = async (appId) => {
     try {
       await extensionFetch(`${APPS_URL}/${encodeURIComponent(appId)}`, { method: "DELETE" });
       await refreshApps();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const generateResetCode = async (appId) => {
+    setError(null);
+    try {
+      const response = await extensionFetch(`${APPS_URL}/${encodeURIComponent(appId)}/reset-code`, { method: "POST" });
+      const data = await readJson(response);
+      setResetCodes((current) => ({ ...current, [appId]: data?.code ?? "" }));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -213,13 +226,23 @@ function SettingsPanel() {
     h("h3", { className: "text-sm font-medium" }, "Connected apps"),
     appsLoading ? h("p", { className: "text-sm text-secondary" }, "Loading…") : null,
     h("ul", { className: "space-y-2" },
-      apps.map((app) => h("li", { key: app.id, className: "flex items-center justify-between gap-2 text-sm" },
-        h("span", null, `${app.label} — ${app.serverUrl}`),
-        h("button", {
-          type: "button",
-          onClick: () => void removeApp(app.id),
-          className: "px-2 py-1 text-xs bg-card hover:bg-card-hover rounded",
-        }, "Remove"),
+      apps.map((app) => h("li", { key: app.id, className: "space-y-1 text-sm" },
+        h("div", { className: "flex items-center justify-between gap-2" },
+          h("span", null, `${app.label} — ${app.serverUrl}`),
+          h("div", { className: "flex gap-2" },
+            h("button", {
+              type: "button",
+              onClick: () => void generateResetCode(app.id),
+              className: "px-2 py-1 text-xs bg-card hover:bg-card-hover rounded",
+            }, "Reset code"),
+            h("button", {
+              type: "button",
+              onClick: () => void removeApp(app.id),
+              className: "px-2 py-1 text-xs bg-card hover:bg-card-hover rounded",
+            }, "Remove"),
+          ),
+        ),
+        resetCodes[app.id] ? h("p", { className: "text-xs text-secondary" }, `Reset code: ${resetCodes[app.id]} (enter in the app with your Cove password)`) : null,
       )),
     ),
   );
