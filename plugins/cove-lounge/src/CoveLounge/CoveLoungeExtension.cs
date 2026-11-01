@@ -140,6 +140,57 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
             return Results.BadRequest(new { error = string.IsNullOrWhiteSpace(body) ? $"Relay returned {(int)response.StatusCode}." : body });
         });
 
+        endpoints.MapPost($"{prefix}/apps/{{appId}}/reset-code", async (string appId, CancellationToken ct) =>
+        {
+            var apps = await LoadAppsAsync(ct);
+            var app = apps.FirstOrDefault(a => string.Equals(a.Id, appId, StringComparison.Ordinal));
+            if (app is null)
+                return Results.NotFound();
+
+            var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString("D6");
+            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code))).ToLowerInvariant();
+            var updated = app with { ResetCodeHash = hash, ResetCodeExpiresAt = DateTimeOffset.UtcNow.AddMinutes(10) };
+            var index = apps.FindIndex(a => string.Equals(a.Id, appId, StringComparison.Ordinal));
+            apps[index] = updated;
+            await SaveAppsAsync(apps, ct);
+            return Results.Ok(new { code, expiresAt = updated.ResetCodeExpiresAt });
+        });
+
+        endpoints.MapPost($"{prefix}/reset/verify", async (HttpContext context, ResetVerifyRequest request, CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.ResetCode) || string.IsNullOrWhiteSpace(request.Password))
+                return Results.BadRequest(new { error = "Reset code and password are required.", ok = false });
+
+            var services = _services ?? throw new InvalidOperationException("Extension not initialized.");
+            var apps = await LoadAppsAsync(ct);
+            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(request.ResetCode.Trim()))).ToLowerInvariant();
+            var app = apps.FirstOrDefault(a => string.Equals(a.ResetCodeHash, hash, StringComparison.Ordinal)
+                && a.ResetCodeExpiresAt.HasValue
+                && a.ResetCodeExpiresAt.Value > DateTimeOffset.UtcNow);
+            if (app is null)
+                return Results.Ok(new { ok = false, error = "Reset code is invalid or expired." });
+
+            var principalAccessor = services.GetRequiredService<ICurrentPrincipalAccessor>();
+            var principal = principalAccessor.Current;
+            if (principal?.UserId is not int userId)
+                return Results.Unauthorized();
+
+            bool passwordValid;
+            await using (var scope = services.GetRequiredService<IExtensionServiceScopeFactory>().CreateAsyncScope())
+            {
+                var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+                passwordValid = await userService.VerifyPasswordAsync(userId, request.Password, ct);
+            }
+
+            if (!passwordValid)
+                return Results.Ok(new { ok = false, error = "Cove password is incorrect." });
+
+            var index = apps.FindIndex(a => string.Equals(a.Id, app.Id, StringComparison.Ordinal));
+            apps[index] = app with { ResetCodeHash = null, ResetCodeExpiresAt = null };
+            await SaveAppsAsync(apps, ct);
+            return Results.Ok(new { ok = true });
+        });
+
         endpoints.MapDelete($"{prefix}/apps/{{appId}}", async (string appId, CancellationToken ct) =>
         {
             var apps = await LoadAppsAsync(ct);
@@ -232,6 +283,7 @@ public sealed class CoveLoungeExtension : FullExtensionBase, IStatefulExtension
         return Convert.ToBase64String(blob);
     }
 
-    private sealed record ConnectedApp(string Id, string Label, string ServerUrl, string ApiKey, Guid? ApiTokenId = null, string DeliveredAt = "");
+    private sealed record ConnectedApp(string Id, string Label, string ServerUrl, string ApiKey, Guid? ApiTokenId = null, string DeliveredAt = "", string? ResetCodeHash = null, DateTimeOffset? ResetCodeExpiresAt = null);
     private sealed record ConnectRequest(string Pin, string? Label);
+    private sealed record ResetVerifyRequest(string ResetCode, string Password);
 }

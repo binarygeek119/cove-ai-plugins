@@ -48,6 +48,12 @@
       "changelog": "Pairing now mints a real Cove API key; add plugin health check endpoint.",
       "minCoveVersion": "1.4.0",
       "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/cove-lounge/v0.1.5/com.binarygeek119.cove-lounge-0.1.5.zip"
+    },
+    {
+      "version": "0.1.6",
+      "changelog": "Add app PIN reset support: generate reset code, verify reset code with Cove password, return ok to app.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/cove-lounge/v0.1.6/com.binarygeek119.cove-lounge-0.1.6.zip"
     }
   ]
 }
