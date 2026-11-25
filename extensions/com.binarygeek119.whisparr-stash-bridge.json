@@ -19,6 +19,13 @@
       "minCoveVersion": "1.4.0",
       "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/whisparr-stash-bridge/v0.1.0/com.binarygeek119.whisparr-stash-bridge-0.1.0.zip",
       "dependencies": {}
+    },
+    {
+      "version": "0.1.1",
+      "changelog": "Debounce scan/generate triggers: coalesce pending triggers, wait 5 minutes before firing, reset on new triggers, and force-fire at 30 minutes.",
+      "minCoveVersion": "1.4.0",
+      "downloadUrl": "https://github.com/binarygeek119/cove-ai-plugins/releases/download/whisparr-stash-bridge/v0.1.1/com.binarygeek119.whisparr-stash-bridge-0.1.1.zip",
+      "dependencies": {}
     }
   ]
 }

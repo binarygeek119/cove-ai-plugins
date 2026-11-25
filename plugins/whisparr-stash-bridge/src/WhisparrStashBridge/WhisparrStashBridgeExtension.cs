@@ -13,8 +13,16 @@ namespace WhisparrStashBridge;
 
 public sealed partial class WhisparrStashBridgeExtension : FullExtensionBase
 {
+    private static readonly TimeSpan TriggerDelay = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan TriggerMaxWindow = TimeSpan.FromMinutes(30);
+
     private IServiceProvider? _services;
     private ILogger? _logger;
+
+    private readonly object _pendingLock = new();
+    private ScanOperationOptions? _pendingOptions;
+    private DateTimeOffset? _pendingFirstSeen;
+    private CancellationTokenSource? _pendingCts;
 
     public override void ConfigureServices(IServiceCollection services, ExtensionContext context)
     {
@@ -26,6 +34,17 @@ public sealed partial class WhisparrStashBridgeExtension : FullExtensionBase
         _services = services;
         _logger = services.GetService<ILoggerFactory>()?.CreateLogger("WhisparrStashBridge");
         _logger?.LogInformation("Whisparr Stash Bridge initialized. Point Whisparr's Stash connection at this Cove server's /graphql endpoint.");
+        return Task.CompletedTask;
+    }
+
+    public override Task ShutdownAsync(CancellationToken ct = default)
+    {
+        lock (_pendingLock)
+        {
+            ClearPendingLocked();
+        }
+
+        _logger?.LogInformation("Whisparr Stash Bridge shut down.");
         return Task.CompletedTask;
     }
 
@@ -141,10 +160,10 @@ public sealed partial class WhisparrStashBridgeExtension : FullExtensionBase
             GeneratePhashes = ExtractBool(query, "scanGeneratePhashes") ?? false,
         };
 
-        var jobId = StartScan(options);
+        var result = ScheduleScan(options);
         _logger?.LogInformation(
-            "Stash bridge metadataScan: jobId={JobId}, paths={Paths}, covers={Covers}, previews={Previews}, imagePreviews={ImagePreviews}, sprites={Sprites}, phashes={Phashes}",
-            jobId,
+            "Stash bridge metadataScan: result={Result}, paths={Paths}, covers={Covers}, previews={Previews}, imagePreviews={ImagePreviews}, sprites={Sprites}, phashes={Phashes}",
+            result,
             string.Join(", ", paths),
             options.GenerateCovers,
             options.GeneratePreviews,
@@ -152,7 +171,7 @@ public sealed partial class WhisparrStashBridgeExtension : FullExtensionBase
             options.GenerateSprites,
             options.GeneratePhashes);
 
-        return jobId;
+        return result;
     }
 
     private string ExecuteMetadataIdentify(string query, bool scanAlreadyTriggered)
@@ -174,7 +193,7 @@ public sealed partial class WhisparrStashBridgeExtension : FullExtensionBase
 
         // Best-effort compatibility: trigger a rescan so Cove picks up the affected path.
         // Full Stash stash-box/autotag identify is not 1:1 with Cove.
-        return StartScan(new ScanOperationOptions
+        return ScheduleScan(new ScanOperationOptions
         {
             Paths = paths.Count > 0 ? paths : null,
             Rescan = true,
@@ -191,13 +210,160 @@ public sealed partial class WhisparrStashBridgeExtension : FullExtensionBase
         return "ok";
     }
 
-    private string StartScan(ScanOperationOptions options)
+    private string ScheduleScan(ScanOperationOptions incoming)
+    {
+        lock (_pendingLock)
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            if (_pendingOptions is null || _pendingFirstSeen is null)
+            {
+                _pendingOptions = CloneOptions(incoming);
+                _pendingFirstSeen = now;
+                SchedulePendingTimerLocked(TriggerDelay);
+                _logger?.LogInformation(
+                    "Stash bridge queued scan/generate trigger; will run in {Delay}. paths={Paths}",
+                    TriggerDelay,
+                    DescribePaths(_pendingOptions.Paths));
+                return "queued";
+            }
+
+            _pendingOptions = MergeOptions(_pendingOptions, incoming);
+            var elapsed = now - _pendingFirstSeen.Value;
+            if (elapsed >= TriggerMaxWindow)
+            {
+                _logger?.LogInformation(
+                    "Stash bridge max trigger window reached ({Window}); firing queued scan/generate now. paths={Paths}",
+                    TriggerMaxWindow,
+                    DescribePaths(_pendingOptions.Paths));
+                var options = _pendingOptions;
+                ClearPendingLocked();
+                return FireScan(options);
+            }
+
+            SchedulePendingTimerLocked(TriggerDelay);
+            _logger?.LogInformation(
+                "Stash bridge merged scan/generate trigger; timer reset to {Delay}. elapsed={Elapsed}. paths={Paths}",
+                TriggerDelay,
+                elapsed,
+                DescribePaths(_pendingOptions.Paths));
+            return "queued";
+        }
+    }
+
+    private void SchedulePendingTimerLocked(TimeSpan delay)
+    {
+        _pendingCts?.Cancel();
+        _pendingCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _pendingCts = cts;
+        _ = RunPendingAfterDelayAsync(delay, cts);
+    }
+
+    private async Task RunPendingAfterDelayAsync(TimeSpan delay, CancellationTokenSource cts)
+    {
+        try
+        {
+            await Task.Delay(delay, cts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        ScanOperationOptions? options;
+        lock (_pendingLock)
+        {
+            if (!ReferenceEquals(_pendingCts, cts) || _pendingOptions is null)
+                return;
+            options = _pendingOptions;
+            ClearPendingLocked();
+        }
+
+        try
+        {
+            var jobId = FireScan(options);
+            _logger?.LogInformation("Stash bridge fired debounced scan/generate. jobId={JobId}", jobId);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Stash bridge failed to fire debounced scan/generate");
+        }
+    }
+
+    private string FireScan(ScanOperationOptions options)
     {
         var services = _services ?? throw new InvalidOperationException("Extension not initialized.");
         using var scope = services.GetRequiredService<IExtensionServiceScopeFactory>().CreateAsyncScope();
         var scanService = scope.ServiceProvider.GetRequiredService<IScanService>();
         return scanService.StartScan(options);
     }
+
+    private void ClearPendingLocked()
+    {
+        _pendingCts?.Cancel();
+        _pendingCts?.Dispose();
+        _pendingCts = null;
+        _pendingOptions = null;
+        _pendingFirstSeen = null;
+    }
+
+    private static ScanOperationOptions CloneOptions(ScanOperationOptions source)
+        => new()
+        {
+            Paths = source.Paths is null ? null : new List<string>(source.Paths),
+            Rescan = source.Rescan,
+            GenerateCovers = source.GenerateCovers,
+            GeneratePreviews = source.GeneratePreviews,
+            GenerateImageThumbnails = source.GenerateImageThumbnails,
+            GenerateSprites = source.GenerateSprites,
+            GeneratePhashes = source.GeneratePhashes,
+            GenerateImagePhashes = source.GenerateImagePhashes,
+            GenerateAudioPhashes = source.GenerateAudioPhashes,
+            GenerateTextPhashes = source.GenerateTextPhashes,
+            GenerateMd5 = source.GenerateMd5,
+            IncludeUnchangedFilesInAssetGeneration = source.IncludeUnchangedFilesInAssetGeneration,
+        };
+
+    private static ScanOperationOptions MergeOptions(ScanOperationOptions target, ScanOperationOptions incoming)
+        => new()
+        {
+            Paths = MergePaths(target.Paths, incoming.Paths),
+            Rescan = target.Rescan || incoming.Rescan,
+            GenerateCovers = target.GenerateCovers || incoming.GenerateCovers,
+            GeneratePreviews = target.GeneratePreviews || incoming.GeneratePreviews,
+            GenerateImageThumbnails = target.GenerateImageThumbnails || incoming.GenerateImageThumbnails,
+            GenerateSprites = target.GenerateSprites || incoming.GenerateSprites,
+            GeneratePhashes = target.GeneratePhashes || incoming.GeneratePhashes,
+            GenerateImagePhashes = target.GenerateImagePhashes || incoming.GenerateImagePhashes,
+            GenerateAudioPhashes = target.GenerateAudioPhashes || incoming.GenerateAudioPhashes,
+            GenerateTextPhashes = target.GenerateTextPhashes || incoming.GenerateTextPhashes,
+            GenerateMd5 = target.GenerateMd5 || incoming.GenerateMd5,
+            IncludeUnchangedFilesInAssetGeneration = target.IncludeUnchangedFilesInAssetGeneration || incoming.IncludeUnchangedFilesInAssetGeneration,
+        };
+
+    private static List<string>? MergePaths(List<string>? a, List<string>? b)
+    {
+        // null means "all paths" / no path filter; merging with any specific paths keeps "all".
+        if (a is null || b is null) return null;
+
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var list = new List<string>();
+        void AddRange(List<string> src)
+        {
+            foreach (var p in src)
+            {
+                if (!string.IsNullOrWhiteSpace(p) && set.Add(p))
+                    list.Add(p);
+            }
+        }
+        AddRange(a);
+        AddRange(b);
+        return list;
+    }
+
+    private static string DescribePaths(List<string>? paths)
+        => paths is null || paths.Count == 0 ? "<all>" : string.Join(", ", paths);
 
     private bool IsAuthorized(HttpContext context)
     {

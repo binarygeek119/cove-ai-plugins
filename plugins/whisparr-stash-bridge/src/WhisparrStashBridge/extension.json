@@ -1,7 +1,7 @@
 {
   "id": "com.binarygeek119.whisparr-stash-bridge",
   "name": "Whisparr Stash Bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lets Whisparr connect to Cove through Whisparr's Stash connection. Exposes a Stash-compatible GraphQL endpoint so Whisparr can trigger Cove scans and generation tasks on import, rename, and delete.",
   "author": "binarygeek119",
   "url": "https://github.com/binarygeek119/cove-ai-plugins",

@@ -33,7 +33,7 @@ Install a built zip without the registry from **Settings → Extensions → Inst
 | [CoveLounge QuickPin](plugins/cove-lounge/README.md) | `com.binarygeek119.cove-lounge` | 0.1.0 |
 | [Media Covers](plugins/media-covers/README.md) | `com.binarygeek119.media-covers` | 0.1.7 |
 | [Text Downloader](plugins/text-downloader/README.md) | `com.binarygeek119.text-downloader` | 0.1.4 |
-| [Whisparr Stash Bridge](plugins/whisparr-stash-bridge/README.md) | `com.binarygeek119.whisparr-stash-bridge` | 0.1.0 |
+| [Whisparr Stash Bridge](plugins/whisparr-stash-bridge/README.md) | `com.binarygeek119.whisparr-stash-bridge` | 0.1.1 |
 
 **AI Provider** is the shared OpenAI-compatible backend (Venice by default). Other plugins call it for chat, speech, and images.
 

@@ -33,6 +33,15 @@ Whisparr talks to Stash over GraphQL at `/graphql`. This plugin exposes a Stash-
 - **API key** - Optional. When set, requests must include the same key.
 - **Rescan unchanged files** - Forces scans to rescan unchanged files.
 
+## Trigger debounce
+
+To avoid flooding Cove with back-to-back Whisparr import triggers, scan/generate requests are coalesced:
+
+- When a trigger arrives, it is queued for **5 minutes** before running.
+- If another scan/generate trigger arrives while one is pending, the pending trigger is merged (paths unioned, generate flags ORed) and the 5-minute timer resets.
+- If the pending trigger has been waiting for **30 minutes** total, it fires immediately when another trigger arrives, clearing the queue so a new debounce window can start.
+- Pending triggers that are not interrupted fire normally after their 5-minute delay.
+
 ## Notes
 
 - Whisparr hardcodes the Stash GraphQL path to `/graphql`, so the bridge maps both `/graphql` and `/api/plugins/com.binarygeek119.whisparr-stash-bridge/graphql`.
