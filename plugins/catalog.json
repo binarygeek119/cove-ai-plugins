@@ -82,6 +82,19 @@
         "integration",
         "tools"
       ]
+    },
+    {
+      "name": "WhisparrStashBridge",
+      "id": "com.binarygeek119.whisparr-stash-bridge",
+      "slug": "whisparr-stash-bridge",
+      "path": "plugins/whisparr-stash-bridge/src/WhisparrStashBridge",
+      "project": "plugins/whisparr-stash-bridge/src/WhisparrStashBridge/WhisparrStashBridge.csproj",
+      "manifest": "plugins/whisparr-stash-bridge/src/WhisparrStashBridge/extension.json",
+      "tagPrefix": "whisparr-stash-bridge/",
+      "categories": [
+        "integration",
+        "automation"
+      ]
     }
   ]
 }

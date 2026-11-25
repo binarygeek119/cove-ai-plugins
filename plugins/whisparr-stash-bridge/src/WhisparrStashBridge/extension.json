@@ -1,0 +1,26 @@
+{
+  "id": "com.binarygeek119.whisparr-stash-bridge",
+  "name": "Whisparr Stash Bridge",
+  "version": "0.1.0",
+  "description": "Lets Whisparr connect to Cove through Whisparr's Stash connection. Exposes a Stash-compatible GraphQL endpoint so Whisparr can trigger Cove scans and generation tasks on import, rename, and delete.",
+  "author": "binarygeek119",
+  "url": "https://github.com/binarygeek119/cove-ai-plugins",
+  "kind": "extension",
+  "categories": ["integration", "automation"],
+  "minCoveVersion": "1.4.0",
+  "entryDll": "WhisparrStashBridge.dll",
+  "settings": [
+    {
+      "name": "apiKey",
+      "type": "STRING",
+      "displayName": "API key",
+      "description": "Optional. If set, Whisparr must send this value in the ApiKey header. Leave empty to accept any key."
+    },
+    {
+      "name": "defaultRescan",
+      "type": "BOOLEAN",
+      "displayName": "Rescan unchanged files",
+      "description": "When a scan is triggered, rescan files even if Cove thinks they are unchanged."
+    }
+  ]
+}

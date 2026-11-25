@@ -33,12 +33,15 @@ Install a built zip without the registry from **Settings → Extensions → Inst
 | [CoveLounge QuickPin](plugins/cove-lounge/README.md) | `com.binarygeek119.cove-lounge` | 0.1.0 |
 | [Media Covers](plugins/media-covers/README.md) | `com.binarygeek119.media-covers` | 0.1.7 |
 | [Text Downloader](plugins/text-downloader/README.md) | `com.binarygeek119.text-downloader` | 0.1.4 |
+| [Whisparr Stash Bridge](plugins/whisparr-stash-bridge/README.md) | `com.binarygeek119.whisparr-stash-bridge` | 0.1.0 |
 
 **AI Provider** is the shared OpenAI-compatible backend (Venice by default). Other plugins call it for chat, speech, and images.
 
 **Text to Audio** converts `.txt` / `.md` files through that provider and writes audio into a folder you set. Install AI Provider first.
 
 **Media Covers** fills in missing audio and text covers as 16:9 movie posters. Install AI Provider 0.2.2+ first.
+
+**Whisparr Stash Bridge** exposes a Stash-compatible `/graphql` endpoint so Whisparr's Stash connection can trigger Cove scans and generation tasks on import, rename, and delete.
 
 ## GitHub Actions
 
